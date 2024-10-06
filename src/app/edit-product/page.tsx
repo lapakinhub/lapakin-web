@@ -101,14 +101,14 @@ export default function UpdatePropertyListingPage({params}: { params: { id: stri
         const fetchPropertyData = async () => {
             setIsLoading(true)
             try {
-                // In a real application, you would fetch the data from your API
-                // For this example, we'll use mock data
+                // In a real application, you would fetch the service from your API
+                // For this example, we'll use mock service
                 const response = await fetch(`/api/properties/${params.id}`)
                 const data = await response.json()
 
                 form.reset(data)
             } catch (error) {
-                console.error('Failed to fetch property data:', error)
+                console.error('Failed to fetch property service:', error)
             } finally {
                 setIsLoading(false)
             }
@@ -120,7 +120,7 @@ export default function UpdatePropertyListingPage({params}: { params: { id: stri
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsSubmitting(true)
         try {
-            // In a real application, you would send the updated data to your API
+            // In a real application, you would send the updated service to your API
             const response = await fetch(`/api/properties/${params.id}`, {
                 method: 'PUT',
                 headers: {

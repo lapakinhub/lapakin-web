@@ -99,7 +99,7 @@ export default function AddPropertyListingForm() {
 
     function onSubmit(values: FormValues) {
         setIsSubmitting(true)
-        // Here you would typically send the form data to your API
+        // Here you would typically send the form service to your API
         console.log(values)
         setTimeout(() => {
             setIsSubmitting(false)

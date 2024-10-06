@@ -17,6 +17,12 @@ import {toast} from "@/hooks/use-toast";
 import {useRouter} from "next/navigation";
 import Navbar from "@/components/molecules/Navbar";
 import {Column} from "@/components/wrapper/Column";
+import {Row} from "@/components/wrapper/Row";
+import {ConfirmationDialog} from "@/components/molecules/ConfirmationDialog";
+import {signOut} from "@firebase/auth";
+import {removeCookie} from "typescript-cookie";
+import {getAuth} from "firebase/auth";
+import {firebaseApp} from "@/lib/firebase";
 
 const formSchema = z.object({
     fullName: z.string().min(2, {message: "Name must be at least 2 characters."}),
@@ -33,8 +39,12 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
+const auth = getAuth(firebaseApp);
+
 export default function EditProfilePage() {
     const [isLoading, setIsLoading] = useState(false);
+
+    const [open, setOpen] = useState(false)
 
     const router = useRouter();
 
@@ -70,7 +80,26 @@ export default function EditProfilePage() {
     return (
         <Column className={"w-full max-w-5xl mx-auto"}>
             <Navbar/>
-            <div className="container mx-auto px-4 py-8">
+
+            <ConfirmationDialog
+                isOpen={open}
+                setIsOpen={setOpen}
+                title={"Are you sure"}
+                description={"Logout from this account ?"}
+                onResult={async (result) => {
+                    if (result) {
+                        await signOut(auth);
+                        removeCookie('auth-token')
+                        router.refresh();
+                    }
+                }}
+            />
+
+            <Row className={'justify-end'}>
+                <Button onClick={() => setOpen(true)} className={'w-fit my-4'}>Logout</Button>
+            </Row>
+
+            <div className="container mx-auto">
                 <Card className="w-full mx-auto">
                     <CardHeader>
                         <CardTitle>Edit Profile</CardTitle>
