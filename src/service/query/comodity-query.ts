@@ -30,11 +30,14 @@ export const useUpdateCommodity = () => {
             return await updateCommodity(id, comodity, files);
         },
         onSuccess: async () => {
+
             router.push(`/my-comodity`);
+
+            await queryClient.invalidateQueries({queryKey: ['commodities', 'owner']});
 
             toast.success('Commodity updated successfully');
 
-            await queryClient.invalidateQueries({queryKey: ['commodity', 'owner']});
+
         },
         onError: (error) => {
             toast.error(error.message);
@@ -53,14 +56,15 @@ export const useGetAllCommodityByOwner = () => useQuery<Commodity[]>({
     queryKey: ['commodities', 'owner'],
     queryFn: async () => {
         return await getAllCommodityByOwner();
-    }
+    },
 })
 
 export const useGetCommodity = (id: string) => useQuery<Commodity, FirebaseError>({
     queryKey: ['commodity', id],
     queryFn: async () => {
         return await getCommodityById(id);
-    }
+    },
+    gcTime: 0,
 })
 
 export const useDeleteCommodity = () => {
