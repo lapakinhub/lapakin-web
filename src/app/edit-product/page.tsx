@@ -1,541 +1,563 @@
 'use client'
 
-import {useState, useEffect} from 'react'
+import {useEffect, useState} from 'react'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
 import {Textarea} from "@/components/ui/textarea"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Button} from "@/components/ui/button"
+import {Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter} from "@/components/ui/card"
+import {Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage} from "@/components/ui/form"
 import {Checkbox} from "@/components/ui/checkbox"
-import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group"
-import {Label} from "@/components/ui/label"
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
-import {Column} from "@/components/wrapper/Column";
-import {useRouter} from "next/navigation";
+import {CalendarIcon, Plus, Search, X, ChevronLeft, ChevronRight} from 'lucide-react'
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
+import {cn} from "@/lib/utils"
+import {format} from "date-fns"
+import {Calendar} from "@/components/ui/calendar"
+import {useGetCommodity, useUpdateCommodity} from "@/service/query/comodity-query"
+import {Commodity} from "@/types/commodity"
+import LocationPicker from "@/components/molecules/LocationPicker"
+import {Column} from "@/components/wrapper/Column"
+import {useRouter, useSearchParams} from "next/navigation"
+import {ScrollArea} from "@/components/ui/scroll-area"
+import {Badge} from "@/components/ui/badge"
+import {formatToRupiah} from "@/lib/number-format"
+import {firebaseApp} from "@/lib/firebase"
+import {getAuth} from "firebase/auth"
+import {useGetAuthUser} from "@/service/query/auth.query"
+import LoaderOverlay from "@/components/molecules/LoadingOverlay"
+import {Progress} from "@/components/ui/progress"
+import ImageUpload from "@/components/molecules/ImageUpload";
 
-const propertyCategories = [
-    "Halaman",
-    "Ruko/Kios",
-    "Gedung/Mall",
-    "Stan/Booth",
-    "Kantin",
-    "Gudang",
-    "Tanah Kosong"
-]
-
-const durations = ["Harian", "Mingguan", "Bulanan", "Tahunan"]
-
-const facilities = [
-    "Parkir",
-    "AC",
-    "Koneksi Internet",
-    "Akses 24/7",
-    "Listrik",
-    "Air"
-]
-
-const allowedBusinessTypes = [
-    "Kuliner",
-    "Ritel",
-    "Digital Store",
-    "Jasa",
-    "Lainnya"
-]
-
-const formSchema = z.object({
-    title: z.string().min(5, {message: "Judul harus minimal 5 karakter"}),
-    category: z.string().min(1, {message: "Pilih kategori properti"}),
-    address: z.string().min(5, {message: "Alamat harus diisi"}),
-    description: z.string().min(20, {message: "Deskripsi minimal 20 karakter"}),
-    price: z.string().min(1, {message: "Harga harus diisi"}),
-    duration: z.string().min(1, {message: "Pilih durasi sewa"}),
-    area: z.string().min(1, {message: "Luas area harus diisi"}),
-    facilities: z.array(z.string()).min(1, {message: "Pilih minimal satu fasilitas"}),
-    images: z.string().min(1, {message: "Masukkan URL gambar"}),
-    specialConditions: z.string().optional(),
-    allowedBusinessTypes: z.array(z.string()).min(1, {message: "Pilih minimal satu jenis usaha"}),
-    transactionType: z.enum(["sewa", "bagi hasil"]),
-    security: z.string().optional(),
-    availability: z.string().min(1, {message: "Masukkan ketersediaan properti"}),
-    rentalRequirements: z.string().min(1, {message: "Masukkan persyaratan sewa"}),
-    flexibility: z.string().optional(),
-    ownerName: z.string().min(1, {message: "Nama pemilik harus diisi"}),
-    phoneNumber: z.string().min(10, {message: "Nomor telepon harus diisi"}),
-    email: z.string().email({message: "Email tidak valid"}),
+const propertySchema = z.object({
+    title: z.string({message: "Wajib di isi"}).min(1, 'Judul comodity harus diisi'),
+    type: z.enum(['Halaman', 'Ruko/Kios', 'Gedung/Mall', 'Stan/Booth', 'Kantin', 'Gudang', 'Tanah Kosong'] as const),
+    address: z.string().min(1, 'Alamat comodity harus diisi'),
+    description: z.string(),
+    price: z.number().min(0, 'Harga tidak boleh negatif'),
+    rentalDuration: z.enum(['Harian', 'Mingguan', 'Bulanan', 'Tahunan'] as const),
+    area: z.number().min(0, 'Luas area tidak boleh negatif'),
+    facilities: z.array(z.string()),
+    videoUrl: z.string().url('URL video tidak valid').optional().or(z.literal('')),
+    specialConditions: z.array(z.string()),
+    allowedBusinessTypes: z.array(z.string()),
+    transactionType: z.enum(['Sewa', 'Bagi Hasil'] as const),
+    security: z.array(z.string()),
+    availability: z.date(),
+    rentalRequirements: z.array(z.string()),
+    flexibility: z.array(z.string()),
+    images: z.array(z.string()),
+    ownerName: z.string().min(1, 'Nama pemilik comodity harus diisi'),
+    phoneNumber: z.string().min(10, 'Nomor telepon tidak valid'),
+    email: z.string().email('Email tidak valid').optional().or(z.literal('')),
+    location: z.string().min(1, 'Lokasi comodity harus diisi'),
 })
 
-export default function UpdatePropertyListingPage({params}: { params: { id: string } }) {
-    const [isLoading, setIsLoading] = useState(true)
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const router = useRouter()
+export type CommodityFormData = z.infer<typeof propertySchema>
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+const defaultOptions = {
+    facilities: ['Parkir', 'AC', 'Koneksi Internet', 'Akses 24/7', 'Listrik', 'Air'],
+    allowedBusinessTypes: ['Kuliner', 'Ritel', 'Digital Store', 'Jasa', 'Kantor'],
+    security: ['CCTV', 'Security', 'Sistem Alarm'],
+    rentalRequirements: ['Pembayaran di Muka', 'Deposit', 'Surat Perjanjian'],
+    flexibility: ['Negosiasi Harga', 'Durasi Sewa Fleksibel', 'Jenis Bisnis Fleksibel'],
+    specialConditions: ['Larangan Bisnis Tertentu', 'Waktu Operasional Terbatas'],
+}
+
+const steps = [
+    {title: "Informasi Dasar", fields: ["title", "type", "location", "address"]},
+    {title: "Deskripsi & Harga", fields: ["description", "price", "rentalDuration", "area"]},
+    {title: "Media", fields: ["images", "videoUrl"]},
+    {title: "Transaksi & Ketersediaan", fields: ["transactionType", "availability"]},
+    {title: "Informasi Pemilik", fields: ["ownerName", "phoneNumber", "email"]},
+    {
+        title: "Fasilitas & Kondisi",
+        fields: ["facilities", "specialConditions", "allowedBusinessTypes", "security", "rentalRequirements", "flexibility"]
+    },
+]
+
+export default function EditCommodityForm() {
+    const [currentStep, setCurrentStep] = useState(0)
+    const [imageFiles, setImageFiles] = useState<File[]>([])
+    const [imagePreviews, setImagePreviews] = useState<string[]>([])
+    const [customOptions, setCustomOptions] = useState({
+        facilities: '',
+        allowedBusinessTypes: '',
+        security: '',
+        rentalRequirements: '',
+        flexibility: '',
+        specialConditions: ''
+    })
+
+    const searchParams = useSearchParams()
+
+    const commodityId = searchParams.get('id') as string
+
+    const auth = getAuth(firebaseApp)
+    const {data: authUser, isLoading: isLoadUser} = useGetAuthUser()
+    const {data: commodity, isLoading: isLoadingCommodity} = useGetCommodity(commodityId)
+    const {mutate: updateCommodity, isPending} = useUpdateCommodity()
+
+    const form = useForm<CommodityFormData>({
+        resolver: zodResolver(propertySchema),
         defaultValues: {
-            title: "",
-            category: "",
-            address: "",
-            description: "",
-            price: "",
-            duration: "",
-            area: "",
             facilities: [],
-            images: "",
-            specialConditions: "",
+            specialConditions: [],
             allowedBusinessTypes: [],
-            transactionType: "sewa",
-            security: "",
-            availability: "",
-            rentalRequirements: "",
-            flexibility: "",
+            security: [],
+            rentalRequirements: [],
+            flexibility: [],
+            images: [],
+            videoUrl: "",
+            location: "",
             ownerName: "",
-            phoneNumber: "",
-            email: "",
-        },
+            email: auth.currentUser?.email ?? "",
+            transactionType: "Sewa",
+            availability: new Date(),
+            description: "",
+            address: "",
+            type: "Halaman"
+        }
     })
 
     useEffect(() => {
-        const fetchPropertyData = async () => {
-            setIsLoading(true)
-            try {
-                // In a real application, you would fetch the service from your API
-                // For this example, we'll use mock service
-                const response = await fetch(`/api/properties/${params.id}`)
-                const data = await response.json()
+        if (commodity) {
+            form.reset(commodity)
+            setImagePreviews(commodity.images || [])
+        }
+    }, [commodity, form])
 
-                form.reset(data)
-            } catch (error) {
-                console.error('Failed to fetch property service:', error)
-            } finally {
-                setIsLoading(false)
-            }
+    useEffect(() => {
+        form.setValue('ownerName', authUser?.fullName ?? '')
+        form.setValue('phoneNumber', authUser?.phoneNumber ?? '')
+    }, [authUser, form])
+
+    const onSubmit = async (    data: CommodityFormData) => {
+        const updatedCommodity: Commodity = {
+            ...data,
+            images: data.images.filter((img: string) => !img.startsWith('blob:')),
+            id: commodityId
         }
 
-        fetchPropertyData()
-    }, [params.id, form])
+        console.log(imageFiles)
 
-    const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        setIsSubmitting(true)
-        try {
-            // In a real application, you would send the updated service to your API
-            const response = await fetch(`/api/properties/${params.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(values),
-            })
+        console.log(updatedCommodity.images)
 
-            if (!response.ok) {
-                throw new Error('Failed to update property')
-            }
-
-            alert('Property listing updated successfully!')
-        } catch (error) {
-            console.error('Error updating property:', error)
-            alert('Failed to update property. Please try again.')
-        } finally {
-            setIsSubmitting(false)
-        }
+        updateCommodity({id: commodityId, comodity: updatedCommodity, files: imageFiles});
     }
 
-    if (isLoading) {
-        return <div className="text-center py-10">Loading...</div>
-    }
+    const route = useRouter()
 
-    return (
-        <Column className={"w-full mx-auto max-w-5xl"}>
-            <Button onClick={() => router.back()} variant={"secondary"} className={"mb-4"}>Kembali</Button>
-            <Card className="w-full mx-auto">
-                <CardHeader>
-                    <CardTitle>Update Property Listing</CardTitle>
-                    <CardDescription>Edit the details of your property listing.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                            <FormField
-                                control={form.control}
-                                name="title"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Judul Properti</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Sewa Ruko Jl. Stasiun Kota Kediri" {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
+    const [searchTerm, setSearchTerm] = useState('')
+    const [isAdding, setIsAdding] = useState(false)
 
-                            <FormField
-                                control={form.control}
-                                name="category"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Kategori Properti</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Pilih kategori properti"/>
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {propertyCategories.map((category) => (
-                                                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="address"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Alamat Properti</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Jl. Stasiun No. 123, Kota Kediri" {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="description"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Deskripsi Properti</FormLabel>
-                                        <FormControl>
-                                            <Textarea placeholder="Deskripsi detail properti..." {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormField
-                                    control={form.control}
-                                    name="price"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel>Harga Sewa / Bagi Hasil</FormLabel>
-                                            <FormControl>
-                                                <Input type="text" placeholder="Rp 5.000.000 / bulan" {...field} />
-                                            </FormControl>
-                                            <FormMessage/>
-                                        </FormItem>
-                                    )}
+    const renderCheckboxGroup = (field: keyof typeof customOptions, label: string) => (
+        <FormField
+            control={form.control}
+            name={field}
+            render={() => (
+                <FormItem className="space-y-2">
+                    <FormLabel>{label.charAt(0).toUpperCase() + label.slice(1)}</FormLabel>
+                    <FormControl>
+                        <div className="space-y-4 rounded-md border p-4">
+                            <div className="flex items-center space-x-2">
+                                <Search className="text-muted-foreground h-5 w-5"/>
+                                <Input
+                                    placeholder={`Cari ${label.toLowerCase()}...`}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="flex-grow"
                                 />
+                            </div>
+                            <ScrollArea className="h-fit">
+                                <div className="space-y-2">
+                                    {Array.from(new Set([...defaultOptions[field], ...form.watch(field)]))
+                                        .filter(option => option.toLowerCase().includes(searchTerm.toLowerCase()))
+                                        .map((option) => (
+                                            <div key={option} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`${field}-${option}`}
+                                                    checked={form.watch(field).includes(option)}
+                                                    onCheckedChange={(checked) => {
+                                                        const currentValues = form.getValues(field)
+                                                        if (checked) {
+                                                            form.setValue(field, Array.from(new Set([...currentValues, option])))
+                                                        } else {
+                                                            form.setValue(field, currentValues.filter((v) => v !== option))
+                                                        }
+                                                    }}
+                                                />
+                                                <label
+                                                    htmlFor={`${field}-${option}`}
+                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {option}
+                                                </label>
+                                                {!defaultOptions[field].includes(option) && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => {
+                                                            const currentValues = form.getValues(field)
+                                                            form.setValue(field, currentValues.filter((v) => v !== option))
+                                                        }}
+                                                        className="ml-auto h-6 w-6 rounded-full p-0"
+                                                    >
+                                                        <X className="h-4 w-4"/>
+                                                        <span className="sr-only">Hapus {option}</span>
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        ))}
+                                </div>
+                            </ScrollArea>
+                            {isAdding ? (
+                                <div className="flex items-center space-x-2">
+                                    <Input
+                                        placeholder={`Tambah ${label.toLowerCase()} baru`}
+                                        value={customOptions[field]}
+                                        onChange={(e) => setCustomOptions({...customOptions, [field]: e.target.value})}
+                                        className="flex-grow"
+                                    />
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            if (customOptions[field].trim()) {
+                                                const currentValues = form.getValues(field)
+                                                form.setValue(field, Array.from(new Set([...currentValues, customOptions[field].trim()])))
+                                                setCustomOptions({...customOptions, [field]: ''})
+                                            }
+                                            setIsAdding(false)
+                                        }}
+                                        size="sm"
+                                    >
+                                        Tambah
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setIsAdding(false)}
+                                        size="sm"
+                                    >
+                                        Batal
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsAdding(true)}
+                                    className="w-full"
+                                >
+                                    <Plus className="h-4 w-4 mr-2"/>
+                                    Tambah {label.toLowerCase()} baru
+                                </Button>
+                            )}
+                        </div>
+                    </FormControl>
+                    <div className="flex flex-wrap gap-2">
+                        {form.watch(field).map((option) => (
+                            <Badge key={option} variant="secondary" className="text-xs">
+                                {option}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        const currentValues = form.getValues(field)
+                                        form.setValue(field, currentValues.filter((v) => v !== option))
+                                    }}
+                                    className="h-4 w-4 ml-1 p-0"
+                                >
+                                    <X className="h-3 w-3"/>
+                                    <span className="sr-only">Hapus {option}</span>
+                                </Button>
+                            </Badge>
+                        ))}
+                    </div>
+                    <FormDescription className="text-xs text-muted-foreground">
+                        Pilih atau tambahkan {label.toLowerCase()} yang sesuai.
+                    </FormDescription>
+                    <FormMessage/>
+                </FormItem>
+            )}
+        />
+    )
 
-                                <FormField
-                                    control={form.control}
-                                    name="duration"
-                                    render={({field}) => (
-                                        <FormItem>
-                                            <FormLabel>Durasi Sewa</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+    const renderStepContent = (step: number) => {
+        const {fields} = steps[step]
+        return (
+            <div className="space-y-6">
+                {fields.map((field) => {
+                    if (field === "images") {
+                        return (
+                            <ImageUpload
+                                onImageUpload={(imgFile, img) => {
+                                    setImagePreviews(img)
+                                    form.setValue('images', img)
+                                    setImageFiles(imgFile)
+                                }}
+                                onDeleteAllImages={() => {
+                                    setImagePreviews([])
+                                    setImageFiles([])
+                                    form.setValue('images', [])
+                                }}
+                                images={imagePreviews}
+                                files={imageFiles}
+                                onDeleteImage={
+                                    (imgFile, img) => {
+                                        setImagePreviews(img)
+                                        setImageFiles(imgFile)
+                                        form.setValue('images', img)
+                                    }
+                                }
+                            />
+                        )
+                    }
+                    if (field === "price") {
+                        return <FormField
+                            control={form.control}
+                            name="price"
+                            render={({field}) => (
+                                <FormItem>
+                                    <FormLabel>Harga Sewa / Bagi Hasil</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            type="text"
+                                            placeholder="Masukkan harga dalam Rupiah"
+                                            value={field.value ? `Rp ${formatToRupiah(field.value)}` : ''}
+                                            onChange={(e) => {
+                                                const rawValue = e.target.value.replace(/[^0-9]/g, '');
+                                                field.onChange(rawValue ? parseFloat(rawValue) : 0);
+                                            }}
+                                        />
+                                    </FormControl>
+
+                                    <FormDescription>
+                                        Masukkan harga sewa atau persentase bagi hasil sesuai kesepakatan.
+                                    </FormDescription>
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />
+                    }
+                    if (field === "area") {
+                        return <FormField
+                            control={form.control}
+                            name="area"
+                            render={({field}) => (
+                                <FormItem>
+                                    <FormLabel>Luas Area (m²)</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} type="number" min="0"
+                                               placeholder="Masukkan luas area dalam meter persegi"
+                                               onChange={(e) => field.onChange(parseFloat(e.target.value))}/>
+                                    </FormControl>
+                                    <FormDescription>Masukkan luas area comodity dalam meter persegi.</FormDescription>
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />;
+                    }
+
+                    if (field === "location") {
+                        return <LocationPicker key={field} form={form}/>
+                    }
+                    if (["facilities", "specialConditions", "allowedBusinessTypes", "security", "rentalRequirements", "flexibility"].includes(field)) {
+                        return renderCheckboxGroup(field as keyof typeof customOptions, field)
+                    }
+                    return (
+                        <FormField
+                            key={field}
+                            control={form.control}
+                            name={field as any}
+                            render={({field: formField}) => (
+                                <FormItem>
+                                    <FormLabel>{getFieldLabel(field)}</FormLabel>
+                                    <FormControl>
+                                        {field === "description" ? (
+                                            <Textarea {...formField} placeholder={getFieldPlaceholder(field)}/>
+                                        ) : field === "type" || field === "rentalDuration" || field === "transactionType" ? (
+                                            <Select onValueChange={formField.onChange} defaultValue={formField.value}>
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Pilih durasi sewa"/>
+                                                        <SelectValue placeholder={getFieldPlaceholder(field)}/>
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {durations.map((duration) => (
-                                                        <SelectItem key={duration}
-                                                                    value={duration}>{duration}</SelectItem>
+                                                    {getFieldOptions(field).map(option => (
+                                                        <SelectItem key={option} value={option}>{option}</SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <FormMessage/>
-                                        </FormItem>
-                                    )}
-                                />
+                                        ) : field === "availability" ? (
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        type={"button"}
+                                                        className={cn(
+                                                            "w-full pl-3 text-left font-normal",
+                                                            !formField.value && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {formField.value ? format(formField.value, "PPP") :
+                                                            <span>Pilih tanggal</span>}
+                                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50"/>
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={formField.value}
+                                                        onSelect={formField.onChange}
+                                                        disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        ) : (
+                                            <Input {...formField} placeholder={getFieldPlaceholder(field)}/>
+                                        )}
+                                    </FormControl>
+                                    <FormDescription>{getFieldDescription(field)}</FormDescription>
+                                    <FormMessage/>
+                                </FormItem>
+                            )}
+                        />
+                    )
+                })}
+            </div>
+        )
+    }
+
+    const getFieldLabel = (field: string): string => {
+        const labels: { [key: string]: string } = {
+            title: "Judul Comodity",
+            type: "Kategori Comodity",
+            address: "Alamat Comodity",
+            description: "Deskripsi Comodity",
+            price: "Harga Sewa / Bagi Hasil",
+            rentalDuration: "Durasi Sewa",
+            area: "Luas Area (m²)",
+            videoUrl: "URL Video",
+            transactionType: "Tipe Transaksi",
+            availability: "Ketersediaan",
+            ownerName: "Nama Pemilik Comodity",
+            phoneNumber: "Nomor Telepon",
+            email: "Email",
+        }
+        return labels[field] || field.charAt(0).toUpperCase() + field.slice(1)
+    }
+
+    const getFieldPlaceholder = (field: string): string => {
+        const placeholders: { [key: string]: string } = {
+            title: "Contoh: Sewa Ruko Jl. Stasiun Kota Kediri",
+            type: "Pilih kategori comodity",
+            address: "Masukkan alamat lengkap comodity",
+            description: "Jelaskan detail comodity seperti ukuran, fasilitas, aksesibilitas, kondisi, dll.",
+            price: "Masukkan harga dalam Rupiah",
+            rentalDuration: "Pilih durasi sewa",
+            area: "Masukkan luas area dalam meter persegi",
+            videoUrl: "https://www.youtube.com/watch?v=...",
+            transactionType: "Pilih tipe transaksi",
+            availability: "Pilih tanggal",
+            ownerName: "Masukkan nama pemilik atau tim pengelola",
+            phoneNumber: "Contoh: 081234567890",
+            email: "contoh@email.com",
+        }
+        return placeholders[field] || `Masukkan ${field}`
+    }
+
+    const getFieldDescription = (field: string): string => {
+        const descriptions: { [key: string]: string } = {
+            title: "Masukkan judul yang menarik dan deskriptif untuk comodity Anda.",
+            type: "Pilih kategori yang paling sesuai dengan comodity Anda.",
+            address: "Berikan alamat fisik atau digital yang jelas untuk comodity Anda.",
+            description: "Berikan deskripsi yang lengkap dan menarik tentang comodity Anda.",
+            price: "Masukkan harga sewa atau persentase bagi hasil sesuai kesepakatan.",
+            rentalDuration: "Pilih durasi sewa yang tersedia untuk comodity ini.",
+            area: "Masukkan luas area comodity dalam meter persegi.",
+            videoUrl: "Masukkan URL video YouTube atau platform serupa jika ada.",
+            transactionType: "Pilih jenis transaksi yang ditawarkan untuk comodity ini.",
+            availability: "Pilih tanggal ketersediaan comodity.",
+            ownerName: "Masukkan nama pemilik comodity atau tim yang mengelola.",
+            phoneNumber: "Masukkan nomor telepon yang dapat dihubungi.",
+            email: "Masukkan alamat email untuk komunikasi non-telepon.",
+        }
+        return descriptions[field] || `Masukkan informasi ${field}`
+    }
+
+    const getFieldOptions = (field: string): string[] => {
+        const options: { [key: string]: string[] } = {
+            type: ['Halaman', 'Ruko/Kios', 'Gedung/Mall', 'Stan/Booth', 'Kantin', 'Gudang', 'Tanah Kosong'],
+            rentalDuration: ['Harian', 'Mingguan', 'Bulanan', 'Tahunan'],
+            transactionType: ['Sewa', 'Bagi Hasil'],
+        }
+        return options[field] || []
+    }
+
+    return (
+        <Column className={'max-w-3xl mx-auto w-full'}>
+            <LoaderOverlay isLoading={isLoadUser || isLoadingCommodity || isPending}/>
+            <Button type={"button"} className={'my-4'} variant={'secondary'}
+                    onClick={() => route.back()}>Kembali</Button>
+
+            <Card className="w-full">
+                <CardHeader>
+                    <CardTitle>Edit Comodity</CardTitle>
+                    <CardDescription>Ubah informasi comodity yang sudah ada.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                            <div className="space-y-4">
+                                <div className="flex justify-between mb-2">
+                                    {steps.map((step, index) => (
+                                        <Button
+                                            key={index}
+                                            type={"button"}
+                                            variant={currentStep === index ? "default" : "outline"}
+                                            onClick={() => setCurrentStep(index)}
+                                            className="px-2 py-1 text-sm"
+                                        >
+                                            {index + 1}
+                                        </Button>
+                                    ))}
+                                </div>
+                                <Progress value={(currentStep + 1) / steps.length * 100} className="w-full"/>
                             </div>
-
-                            <FormField
-                                control={form.control}
-                                name="area"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Luas Area (m²)</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" placeholder="100" {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="facilities"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>Fasilitas</FormLabel>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                            {facilities.map((facility) => (
-                                                <FormField
-                                                    key={facility}
-                                                    control={form.control}
-                                                    name="facilities"
-                                                    render={({field}) => {
-                                                        return (
-                                                            <FormItem
-                                                                key={facility}
-                                                                className="flex flex-row items-start space-x-3 space-y-0"
-                                                            >
-                                                                <FormControl>
-                                                                    <Checkbox
-                                                                        checked={field.value?.includes(facility)}
-                                                                        onCheckedChange={(checked) => {
-                                                                            return checked
-                                                                                ? field.onChange([...field.value, facility])
-                                                                                : field.onChange(
-                                                                                    field.value?.filter(
-                                                                                        (value) => value !== facility
-                                                                                    )
-                                                                                )
-                                                                        }}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">
-                                                                    {facility}
-                                                                </FormLabel>
-                                                            </FormItem>
-                                                        )
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="images"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>URL Gambar/Video Properti</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="https://example.com/image.jpg" {...field} />
-                                        </FormControl>
-                                        <FormDescription>Masukkan URL gambar atau video properti</FormDescription>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="specialConditions"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Kondisi Khusus</FormLabel>
-                                        <FormControl>
-                                            <Textarea placeholder="Kondisi khusus properti..." {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="allowedBusinessTypes"
-                                render={() => (
-                                    <FormItem>
-                                        <FormLabel>Jenis Usaha yang Diizinkan</FormLabel>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                            {allowedBusinessTypes.map((type) => (
-                                                <FormField
-                                                    key={type}
-                                                    control={form.control}
-                                                    name="allowedBusinessTypes"
-                                                    render={({field}) => {
-                                                        return (
-                                                            <FormItem
-                                                                key={type}
-                                                                className="flex flex-row items-start space-x-3 space-y-0"
-                                                            >
-                                                                <FormControl>
-                                                                    <Checkbox
-                                                                        checked={field.value?.includes(type)}
-                                                                        onCheckedChange={(checked) => {
-                                                                            return checked
-                                                                                ? field.onChange([...field.value, type])
-                                                                                : field.onChange(
-                                                                                    field.value?.filter(
-                                                                                        (value) => value !== type
-                                                                                    )
-                                                                                )
-                                                                        }}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">
-                                                                    {type}
-                                                                </FormLabel>
-                                                            </FormItem>
-                                                        )
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="transactionType"
-                                render={({field}) => (
-                                    <FormItem className="space-y-3">
-                                        <FormLabel>Tipe Transaksi</FormLabel>
-                                        <FormControl>
-                                            <RadioGroup
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                                className="flex flex-col space-y-1"
-                                            >
-                                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <RadioGroupItem value="sewa"/>
-                                                    </FormControl>
-                                                    <FormLabel className="font-normal">
-                                                        Sewa
-                                                    </FormLabel>
-                                                </FormItem>
-                                                <FormItem className="flex items-center space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <RadioGroupItem value="bagi hasil"/>
-                                                    </FormControl>
-                                                    <FormLabel className="font-normal">
-                                                        Bagi Hasil
-                                                    </FormLabel>
-                                                </FormItem>
-                                            </RadioGroup>
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="security"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Keamanan Properti</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="CCTV, Security, dll." {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="availability"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Ketersediaan Properti</FormLabel>
-                                        <FormControl>
-                                            <Input type="date" {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="rentalRequirements"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Persyaratan Sewa</FormLabel>
-                                        <FormControl>
-                                            <Textarea placeholder="Persyaratan sewa properti..." {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="flexibility"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Fleksibilitas</FormLabel>
-                                        <FormControl>
-                                            <Textarea placeholder="Fleksibilitas negosiasi..." {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="ownerName"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Nama Pemilik Properti</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Nama Pemilik" {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="phoneNumber"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Nomor Telepon</FormLabel>
-                                        <FormControl>
-                                            <Input type="tel" placeholder="+62 812-3456-7890" {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({field}) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
-                                        <FormControl>
-                                            <Input type="email" placeholder="email@example.com" {...field} />
-                                        </FormControl>
-                                        <FormMessage/>
-                                    </FormItem>
-                                )}
-                            />
-
-                            <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? 'Updating...' : 'Update Property Listing'}
-                            </Button>
+                            <h2 className="text-lg font-semibold mb-4">{steps[currentStep].title}</h2>
+                            {renderStepContent(currentStep)}
                         </form>
                     </Form>
                 </CardContent>
+                <CardFooter className="flex justify-between">
+                    <Button
+                        type="button"
+                        onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
+                        disabled={currentStep === 0}
+                        variant="outline"
+                    >
+                        <ChevronLeft className="mr-2 h-4 w-4"/> Sebelumnya
+                    </Button>
+                    {currentStep === steps.length - 1 ? (
+                        <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+                            Simpan Perubahan
+                        </Button>
+                    ) : (
+                        <Button
+                            type="button"
+                            onClick={() => setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1))}
+                        >
+                            Selanjutnya <ChevronRight className="ml-2 h-4 w-4"/>
+                        </Button>
+                    )}
+                </CardFooter>
             </Card>
         </Column>
     )

@@ -77,9 +77,9 @@ export default function AestheticSearchBar() {
                             </RadioGroup>
                         </DialogContent>
                     </Dialog>
-                    {/*<Button onClick={handleSearch} className="w-full sm:w-auto text-base py-3 px-8 rounded-full bg-primary hover:bg-primary/90 transition-colors">*/}
-                    {/*    Search*/}
-                    {/*</Button>*/}
+                    <Button onClick={handleSearch} className="w-full sm:w-auto text-base py-3 px-8 rounded-full bg-primary hover:bg-primary/90 transition-colors">
+                        Filter
+                    </Button>
                 </div>
             </div>
             {searchQuery && (

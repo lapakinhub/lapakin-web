@@ -3,6 +3,8 @@ import {Lato} from "next/font/google";
 import "./globals.css";
 import {ReactQueryClientProvider} from "@/components/provider/ReactQueryProvider";
 import React from "react";
+import {Toaster} from 'react-hot-toast';
+import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 
 const lato = Lato(
     {
@@ -27,6 +29,8 @@ export default function RootLayout({children}: Readonly<{
                 className={`${lato.className} flex flex-col items-start mx-auto w-full antialiased p-4`}
             >
             {children}
+            <Toaster/>
+            <ReactQueryDevtools/>
             </body>
             </html>
         </ReactQueryClientProvider>
