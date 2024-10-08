@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import {Suspense, useEffect, useState} from 'react'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -502,63 +502,65 @@ export default function EditCommodityForm() {
     }
 
     return (
-        <Column className={'max-w-3xl mx-auto w-full'}>
-            <LoaderOverlay isLoading={isLoadUser || isLoadingCommodity || isPending}/>
-            <Button type={"button"} className={'my-4'} variant={'secondary'}
-                    onClick={() => route.back()}>Kembali</Button>
+        <Suspense>
+            <Column className={'max-w-3xl mx-auto w-full'}>
+                <LoaderOverlay isLoading={isLoadUser || isLoadingCommodity || isPending}/>
+                <Button type={"button"} className={'my-4'} variant={'secondary'}
+                        onClick={() => route.back()}>Kembali</Button>
 
-            <Card className="w-full">
-                <CardHeader>
-                    <CardTitle>Edit Comodity</CardTitle>
-                    <CardDescription>Ubah informasi comodity yang sudah ada.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            <div className="space-y-4">
-                                <div className="flex justify-between mb-2">
-                                    {steps.map((step, index) => (
-                                        <Button
-                                            key={index}
-                                            type={"button"}
-                                            variant={currentStep === index ? "default" : "outline"}
-                                            onClick={() => setCurrentStep(index)}
-                                            className="px-2 py-1 text-sm"
-                                        >
-                                            {index + 1}
-                                        </Button>
-                                    ))}
+                <Card className="w-full">
+                    <CardHeader>
+                        <CardTitle>Edit Comodity</CardTitle>
+                        <CardDescription>Ubah informasi comodity yang sudah ada.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between mb-2">
+                                        {steps.map((step, index) => (
+                                            <Button
+                                                key={index}
+                                                type={"button"}
+                                                variant={currentStep === index ? "default" : "outline"}
+                                                onClick={() => setCurrentStep(index)}
+                                                className="px-2 py-1 text-sm"
+                                            >
+                                                {index + 1}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <Progress value={(currentStep + 1) / steps.length * 100} className="w-full"/>
                                 </div>
-                                <Progress value={(currentStep + 1) / steps.length * 100} className="w-full"/>
-                            </div>
-                            <h2 className="text-lg font-semibold mb-4">{steps[currentStep].title}</h2>
-                            {renderStepContent(currentStep)}
-                        </form>
-                    </Form>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                    <Button
-                        type="button"
-                        onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
-                        disabled={currentStep === 0}
-                        variant="outline"
-                    >
-                        <ChevronLeft className="mr-2 h-4 w-4"/> Sebelumnya
-                    </Button>
-                    {currentStep === steps.length - 1 ? (
-                        <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
-                            Simpan Perubahan
-                        </Button>
-                    ) : (
+                                <h2 className="text-lg font-semibold mb-4">{steps[currentStep].title}</h2>
+                                {renderStepContent(currentStep)}
+                            </form>
+                        </Form>
+                    </CardContent>
+                    <CardFooter className="flex justify-between">
                         <Button
                             type="button"
-                            onClick={() => setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1))}
+                            onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
+                            disabled={currentStep === 0}
+                            variant="outline"
                         >
-                            Selanjutnya <ChevronRight className="ml-2 h-4 w-4"/>
+                            <ChevronLeft className="mr-2 h-4 w-4"/> Sebelumnya
                         </Button>
-                    )}
-                </CardFooter>
-            </Card>
-        </Column>
+                        {currentStep === steps.length - 1 ? (
+                            <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+                                Simpan Perubahan
+                            </Button>
+                        ) : (
+                            <Button
+                                type="button"
+                                onClick={() => setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1))}
+                            >
+                                Selanjutnya <ChevronRight className="ml-2 h-4 w-4"/>
+                            </Button>
+                        )}
+                    </CardFooter>
+                </Card>
+            </Column>
+        </Suspense>
     )
 }
