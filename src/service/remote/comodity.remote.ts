@@ -36,7 +36,7 @@ export const storeComodity = async (propertyData: Commodity, files: File[]) => {
     return result.id;
 };
 
-export const updateCommodity  = async(commodityId: string, propertyData: Commodity, files: File[]) => {
+export const updateCommodity = async (commodityId: string, propertyData: Commodity, files: File[]) => {
     const images: string[] = [...(propertyData.images ?? [])];
 
     for (const file of files) {
@@ -52,7 +52,7 @@ export const updateCommodity  = async(commodityId: string, propertyData: Commodi
     }
 
     const docRef = doc(db, 'commodities', commodityId);
-    await setDoc(docRef, uploadedData, { merge: true });
+    await setDoc(docRef, uploadedData, {merge: true});
 
     return commodityId;
 }
@@ -83,6 +83,27 @@ export const getAllCommodityByOwner = async (): Promise<Commodity[]> => {
     const ownerId = auth.currentUser?.uid;
     return fetchCommodities([where("ownerId", "==", ownerId)]);
 };
+
+export const getAllCommodityByLocation = async (location: string): Promise<Commodity[]> => {
+    return fetchCommodities([where("location", "==", location)]);
+}
+
+export const getAllCommodityByName = async (name?: string, location?: string): Promise<Commodity[]> => {
+    const commodities = await getAllCommodity();
+
+    return commodities.filter(commodity => {
+        const matchesName = name
+            ? commodity.title.toLowerCase().includes(name.toLowerCase())
+            : true;
+
+        const matchesLocation = location
+            ? commodity.location?.toLowerCase().includes(location.toLowerCase())
+            : true;
+
+        return matchesName && matchesLocation;
+    });
+};
+
 
 export const getCommodityById = async (commodityId: string): Promise<Commodity> => {
     const docRef = doc(db, 'commodities', commodityId);

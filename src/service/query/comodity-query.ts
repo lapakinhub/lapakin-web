@@ -2,7 +2,7 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Commodity} from "@/types/commodity";
 import {
     deleteCommodity,
-    getAllCommodity,
+    getAllCommodity, getAllCommodityByName,
     getAllCommodityByOwner,
     getCommodityById,
     storeComodity, updateCommodity
@@ -36,8 +36,6 @@ export const useUpdateCommodity = () => {
             await queryClient.invalidateQueries({queryKey: ['commodities', 'owner']});
 
             toast.success('Commodity updated successfully');
-
-
         },
         onError: (error) => {
             toast.error(error.message);
@@ -45,12 +43,18 @@ export const useUpdateCommodity = () => {
     })
 }
 
-export const useGetAllCommodity = () => useQuery<Commodity[]>({
-    queryKey: ['commodities', 'all'],
+export const useGetAllCommodity = (type?: "filter" | "all", query?: string, location?: string) => useQuery<Commodity[]>({
+    queryKey: ['commodities', type, query, location],
     queryFn: async () => {
+
+        if (type === "filter" && query || location) {
+            return await getAllCommodityByName(query, location)
+        }
+
         return await getAllCommodity();
     }
 })
+
 
 export const useGetAllCommodityByOwner = () => useQuery<Commodity[]>({
     queryKey: ['commodities', 'owner'],

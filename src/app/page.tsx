@@ -1,6 +1,5 @@
 "use client"
 
-import {Button} from "@/components/ui/button";
 import {Column} from "@/components/wrapper/Column";
 import ProductCard from "@/components/molecules/ProductCard";
 import Navbar from "@/components/molecules/Navbar";
@@ -8,11 +7,17 @@ import {useRouter} from "next/navigation";
 import SearchBarWithFilter from "@/components/molecules/SearchFilter";
 import {useGetAllCommodity} from "@/service/query/comodity-query";
 import {Loading} from "@/components/molecules/Loading";
+import {useState} from "react";
+import {Row} from "@/components/wrapper/Row";
 
 export default function Home() {
     const router = useRouter();
 
-    const {data: commoedities, isLoading} = useGetAllCommodity();
+    const [type, setType] = useState<"all" | "filter">("all")
+    const [query, setQuery] = useState<string>()
+    const [location, setLocation] = useState<string>()
+
+    const {data: commoedities, isLoading} = useGetAllCommodity(type, query, location);
 
 
     return (
@@ -21,15 +26,29 @@ export default function Home() {
 
             <div className={'my-2'}></div>
 
-            <SearchBarWithFilter/>
+            <SearchBarWithFilter onSearch={(query: string) => {
+                if (query.length === 0) {
+                    setQuery(undefined)
+                    return
+                }
+
+                setType('filter')
+                setQuery(query)
+            }} onFilter={
+                (location: string) => {
+                    if (location === 'all') {
+                        setLocation(undefined)
+                        return
+                    }
+                    setType('filter')
+                    setLocation(location)
+                }
+            }/>
 
             {commoedities && commoedities.length === 0 && (
-                <div className={'text-center'}>
+                <Row className={'w-full justify-center my-4 text-center'}>
                     <h1 className={'text-2xl'}>No Commodity Found</h1>
-                    <Button onClick={() => {
-                        router.push('/add-product')
-                    }}>Add Commodity</Button>
-                </div>
+                </Row>
             )}
 
             {isLoading && <Loading className={'my-10'}/>}
