@@ -1,6 +1,11 @@
 import {useMutation, useQuery} from "@tanstack/react-query";
 import {LoginBody} from "@/types/login-body";
-import {getAuthUser, loginWithEmailPassword, registerWithEmailPassword} from "@/service/remote/auth.remote";
+import {
+    getAuthUser,
+    loginWithEmailPassword,
+    registerWithEmailPassword,
+    updateUserProfile
+} from "@/service/remote/auth.remote";
 import {RegisterBody} from "@/types/register-body";
 import {UserCredential} from "firebase/auth";
 import {setCookie} from "typescript-cookie";
@@ -39,6 +44,19 @@ export const useRegister = () => useMutation<UserCredential, FirebaseError, {reg
 
     }
 )
+
+export const useUpdateProfile = () => useMutation<void, FirebaseError, { user: User }>({
+    mutationKey: ['auth', 'update'],
+    mutationFn: async ({ user }: { user: User }) => {
+        return await updateUserProfile(user);
+    },
+    onSuccess: async () => {
+        toast.success('Profile Updated');
+    },
+    onError: (error) => {
+        toast.error(getFirebaseError(error.code));
+    }
+})
 
 export const useGetAuthUser = () => useQuery<User, FirebaseError>(
     {

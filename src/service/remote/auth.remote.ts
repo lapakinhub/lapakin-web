@@ -1,5 +1,11 @@
 import {LoginBody} from "@/types/login-body";
-import {signInWithEmailAndPassword, getAuth, createUserWithEmailAndPassword, UserCredential} from "firebase/auth";
+import {
+    signInWithEmailAndPassword,
+    getAuth,
+    createUserWithEmailAndPassword,
+    UserCredential,
+    updateProfile, updateEmail
+} from "firebase/auth";
 import {
     collection,
     doc,
@@ -9,7 +15,7 @@ import {
     setDoc,
     where,
     query,
-    getDoc
+    getDoc, updateDoc
 } from "firebase/firestore";
 import {firebaseApp} from "@/lib/firebase";
 import {RegisterBody} from "@/types/register-body";
@@ -41,6 +47,34 @@ export const registerWithEmailPassword = async (body: RegisterBody): Promise<Use
     });
 
     return result;
+};
+
+export const updateUserProfile = async (
+    body: User
+): Promise<void> => {
+    const userDocRef = doc(db, "users", auth.currentUser?.uid ?? "");
+
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+        throw new FirebaseError("auth/not-authenticated","User is not authenticated");
+    }
+
+    if (body.fullName || body.profilePictureUrl) {
+        await updateProfile(currentUser, {
+            displayName: body.fullName || currentUser.displayName,
+            photoURL: body.profilePictureUrl || currentUser.photoURL,
+        });
+    }
+
+    if (body.email && body.email !== currentUser.email) {
+        await updateEmail(currentUser, body.email);
+    }
+
+    await updateDoc(userDocRef, {
+        ...body,
+        updatedAt: serverTimestamp(),
+    });
 };
 
 export const getAuthUser = async (): Promise<User> => {
