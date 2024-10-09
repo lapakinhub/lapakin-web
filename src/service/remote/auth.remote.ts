@@ -21,6 +21,7 @@ import {firebaseApp} from "@/lib/firebase";
 import {RegisterBody} from "@/types/register-body";
 import {FirebaseError} from "@firebase/util";
 import {User} from "@/types/user";
+import {uploadFile} from "@/service/remote/storage.remote";
 
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
@@ -50,20 +51,32 @@ export const registerWithEmailPassword = async (body: RegisterBody): Promise<Use
 };
 
 export const updateUserProfile = async (
-    body: User
+    body: User,
+    image?: File,
 ): Promise<void> => {
     const userDocRef = doc(db, "users", auth.currentUser?.uid ?? "");
 
     const currentUser = auth.currentUser;
 
+
     if (!currentUser) {
-        throw new FirebaseError("auth/not-authenticated","User is not authenticated");
+        throw new FirebaseError("auth/not-authenticated", "User is not authenticated");
     }
 
-    if (body.fullName || body.profilePictureUrl) {
+    if (image !== undefined) {
+        const url = await uploadFile({file: image, folder: 'profile'});
+        await updateProfile(currentUser, {
+            photoURL: url,
+        });
+        body = {
+            ...body,
+            image: url,
+        }
+    }
+
+    if (body.fullName) {
         await updateProfile(currentUser, {
             displayName: body.fullName || currentUser.displayName,
-            photoURL: body.profilePictureUrl || currentUser.photoURL,
         });
     }
 

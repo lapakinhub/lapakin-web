@@ -14,10 +14,10 @@ import {FirebaseError} from "@firebase/util";
 import {getFirebaseError} from "@/lib/firebase-error";
 import {User} from "@/types/user";
 
-export const useLogin = () => useMutation<UserCredential, FirebaseError, {loginBody: LoginBody}>(
+export const useLogin = () => useMutation<UserCredential, FirebaseError, { loginBody: LoginBody }>(
     {
-        mutationKey:['auth', 'login'],
-        mutationFn: ({ loginBody }: { loginBody: LoginBody }) => loginWithEmailPassword(loginBody),
+        mutationKey: ['auth', 'login'],
+        mutationFn: ({loginBody}: { loginBody: LoginBody }) => loginWithEmailPassword(loginBody),
         onSuccess: async (data) => {
             setCookie('auth-token', JSON.stringify(await data.user.getIdToken()), {expires: 7});
             toast.success('Login Success');
@@ -29,10 +29,10 @@ export const useLogin = () => useMutation<UserCredential, FirebaseError, {loginB
     }
 )
 
-export const useRegister = () => useMutation<UserCredential, FirebaseError, {registerBody: RegisterBody}>(
+export const useRegister = () => useMutation<UserCredential, FirebaseError, { registerBody: RegisterBody }>(
     {
         mutationKey: ['auth', 'register'],
-        mutationFn: ({ registerBody }: { registerBody: RegisterBody }) => registerWithEmailPassword(registerBody),
+        mutationFn: ({registerBody}: { registerBody: RegisterBody }) => registerWithEmailPassword(registerBody),
         onSuccess: async (data) => {
             setCookie('auth-token', JSON.stringify(await data.user.getIdToken()), {expires: 7});
             window.location.href = "/"
@@ -45,16 +45,18 @@ export const useRegister = () => useMutation<UserCredential, FirebaseError, {reg
     }
 )
 
-export const useUpdateProfile = () => useMutation<void, FirebaseError, { user: User }>({
+export const useUpdateProfile = () => useMutation<void, FirebaseError, { user: User, file?: File }>({
     mutationKey: ['auth', 'update'],
-    mutationFn: async ({ user }: { user: User }) => {
-        return await updateUserProfile(user);
+    mutationFn: async ({user, file}: { user: User, file?: File }) => {
+        return await updateUserProfile(user, file);
     },
     onSuccess: async () => {
-        toast.success('Profile Updated');
+        toast.success('Data berhasil diubah');
     },
     onError: (error) => {
-        toast.error(getFirebaseError(error.code));
+        console.log(error.message)
+        console.log(error.code)
+        toast.error(error.message);
     }
 })
 
