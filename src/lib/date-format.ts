@@ -1,24 +1,22 @@
 export function timeAgo(dateString: string): string {
-    const now = new Date();
-    const past = new Date(dateString);
-    const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
+    const sekarang = new Date();
+    const waktuLalu = new Date(dateString);
+    const selisihDetik = Math.floor((sekarang.getTime() - waktuLalu.getTime()) / 1000);
 
-    // Define time units in seconds
-    const timeUnits = [
-        { unit: "year", seconds: 31536000 },
-        { unit: "month", seconds: 2592000 },
-        { unit: "week", seconds: 604800 },
-        { unit: "day", seconds: 86400 },
-        { unit: "hour", seconds: 3600 },
-        { unit: "minute", seconds: 60 },
-        { unit: "second", seconds: 1 }
+    const satuanWaktu = [
+        { unit: "tahun", detik: 31536000 },
+        { unit: "bulan", detik: 2592000 },
+        { unit: "minggu", detik: 604800 },
+        { unit: "hari", detik: 86400 },
+        { unit: "jam", detik: 3600 },
+        { unit: "menit", detik: 60 },
+        { unit: "detik", detik: 1 }
     ];
 
-    // Iterate over the units to find the correct time difference
-    for (const { unit, seconds } of timeUnits) {
-        const interval = Math.floor(diffInSeconds / seconds);
+    for (const { unit, detik } of satuanWaktu) {
+        const interval = Math.floor(selisihDetik / detik);
         if (interval >= 1) {
-            return interval === 1 ? `1 ${unit} ago` : `${interval} ${unit}s ago`;
+            return interval === 1 ? `1 ${unit} yang lalu` : `${interval} ${unit} yang lalu`;
         }
     }
 

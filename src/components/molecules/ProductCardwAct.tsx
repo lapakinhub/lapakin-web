@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Commodity } from "@/types/commodity"
 import { timeAgo } from "@/lib/date-format"
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import {formatToRupiah} from "@/lib/number-format";
 
 interface ProductCardwActProps {
     commodity?: Commodity
@@ -135,11 +136,11 @@ export default function ProductCardwAct({ commodity, onEdit, onDelete }: Product
                         </Button>
                     </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">{`Added ${timeAgo(commodity?.lastModified?.toString() ?? "")}`}</p>
+                <p className="text-sm text-muted-foreground mb-2">{`Diubah ${timeAgo(commodity?.lastModified?.toString() ?? "")}`}</p>
                 <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold">
-                        ${commodity?.price?.toLocaleString()}
-                        <span className="text-sm font-normal"> night</span>
+                    <span className="text-lg font-semibold overflow-ellipsis max-w-full">
+                        Rp. {formatToRupiah(commodity?.price ?? 0)}
+                        <span className="text-xs overflow-ellipsis font-normal">/ {commodity?.rentalDuration}</span>
                     </span>
                 </div>
             </CardContent>

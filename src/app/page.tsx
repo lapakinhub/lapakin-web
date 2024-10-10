@@ -36,6 +36,7 @@ export default function Home() {
                 setQuery(query)
             }} onFilter={
                 (location: string) => {
+                    console.log(location)
                     if (location === 'all') {
                         setLocation(undefined)
                         return

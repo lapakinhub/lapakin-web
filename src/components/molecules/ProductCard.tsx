@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Share2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import {
     Card,
@@ -52,16 +52,14 @@ export default function ProductCard({ commodity, onClick }: ProductCardProps) {
                         className="object-cover w-full h-full rounded-t-lg"
                     />
                 </AspectRatio>
-                <Badge className="absolute left-4 top-4 bg-white text-black">
+                <Badge className="absolute left-4 bottom-4 bg-white text-black">
                     Siap dipesan
                 </Badge>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-2 bg-white/80 hover:bg-white rounded-full"
+                <Badge
+                    className="absolute right-4 top-4 bg-white/80 hover:bg-white text-black rounded-full"
                 >
-                    <Share2 className="h-4 w-4" />
-                </Button>
+                    {commodity?.location}
+                </Badge>
                 {images.length > 1 && (
                     <>
                         <Button
