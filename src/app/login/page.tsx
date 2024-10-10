@@ -39,7 +39,7 @@ export default function LoginPage() {
         <div className="container mx-auto max-w-5xl px-4 py-8 flex items-center justify-center min-h-screen">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <AppLogoWBg className={'mb-4'}/>
+                    <AppLogoWBg width={100} className={'mb-4 mx-auto'}/>
                     <CardTitle>Login</CardTitle>
                     <CardDescription>Enter your credentials to access your account</CardDescription>
                 </CardHeader>

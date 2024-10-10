@@ -1,6 +1,5 @@
 "use client"
 
-import {useState} from "react"
 import {useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -9,13 +8,11 @@ import {Loader2} from "lucide-react"
 
 import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
-import {Textarea} from "@/components/ui/textarea"
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group"
 import {AppLogoWBg} from "@/components/atoms/AppLogoWBg";
 import {useRegister} from "@/service/query/auth.query";
-import {toast} from "@/hooks/use-toast";
 
 const registerSchema = z.object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
@@ -60,7 +57,7 @@ export default function RegisterPage() {
         <div className="container mx-auto max-w-5xl px-4 py-8">
             <Card className="w-full max-w-2xl mx-auto">
                 <CardHeader>
-                    <AppLogoWBg className={"mb-4"}/>
+                    <AppLogoWBg width={100} className={"mb-4 mx-auto"}/>
                     <CardTitle>Register</CardTitle>
                     <CardDescription>Create your account to start using our services</CardDescription>
                 </CardHeader>

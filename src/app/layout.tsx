@@ -6,6 +6,8 @@ import React from "react";
 import {Toaster} from 'react-hot-toast';
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 
+import localFont from 'next/font/local'
+
 const lato = Lato(
     {
         weight: ['400', '700', '900'],
@@ -13,6 +15,19 @@ const lato = Lato(
         display: 'swap'
     }
 );
+
+const airBncFont = localFont({
+    src: [
+        {
+            path: './airbnb-font.otf',
+            weight: '500'
+        },
+        {
+            path: './airbnb-font-bold.otf',
+            weight: '700'
+        }
+    ]
+})
 
 export const metadata: Metadata = {
     title: "Ecommerce",
@@ -26,9 +41,12 @@ export default function RootLayout({children}: Readonly<{
         <ReactQueryClientProvider>
             <html lang="en">
             <body
-                className={`${lato.className} flex flex-col items-start mx-auto w-full antialiased p-4`}
+                className={`${airBncFont.className} flex flex-col items-start mx-auto w-full antialiased p-4`}
             >
             {children}
+            <div className={'text-center text-xs w-full mx-auto'}>Icons made from <a
+                href="https://www.onlinewebfonts.com/icon">svg icons</a>is licensed by CC BY 4.0
+            </div>
             <Toaster/>
             <ReactQueryDevtools/>
             </body>

@@ -4,7 +4,7 @@ import {useEffect, useState} from "react"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form"
 import * as z from "zod"
-import {Save, Loader2, Upload, Instagram, Linkedin, Facebook} from "lucide-react"
+import {Save, Loader2, Linkedin, Instagram, Facebook} from "lucide-react"
 
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
@@ -12,8 +12,6 @@ import {Input} from "@/components/ui/input"
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group"
 import {Textarea} from "@/components/ui/textarea"
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
-import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
-import {toast} from "@/hooks/use-toast"
 import {useRouter} from "next/navigation"
 import Navbar from "@/components/molecules/Navbar"
 import {Column} from "@/components/wrapper/Column"
@@ -46,9 +44,7 @@ export type UserFormValues = z.infer<typeof formSchema>
 const auth = getAuth(firebaseApp)
 
 export default function EditProfilePage() {
-    const [isLoading, setIsLoading] = useState(false)
     const [open, setOpen] = useState(false)
-    const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [imageFile, setImageFile] = useState<File | undefined>(undefined)
 
     const router = useRouter()
@@ -87,7 +83,6 @@ export default function EditProfilePage() {
                 facebook: authUser.socialMediaLinks?.facebook,
                 image: authUser.image,
             })
-            setImagePreview(authUser.image || null)
         }
     }, [authUser, form])
 
@@ -107,20 +102,8 @@ export default function EditProfilePage() {
         })
     }
 
-    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
-        if (file) {
-            setImageFile(file)
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string)
-            }
-            reader.readAsDataURL(file)
-        }
-    }
-
     return (
-        <Column className="w-full max-w-5xl mx-auto px-4 py-8">
+        <Column className="w-full max-w-5xl mx-auto px-4 mb-8">
             <Navbar/>
 
             <LoaderOverlay isLoading={loadUser || isPending}/>
@@ -344,8 +327,8 @@ export default function EditProfilePage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button type="submit" className="w-full" disabled={isLoading}>
-                                {isLoading ? (
+                            <Button type="submit" className="w-full" disabled={isPending}>
+                                {isPending ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                                         Saving changes...

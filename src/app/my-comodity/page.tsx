@@ -12,10 +12,10 @@ import Navbar from "@/components/molecules/Navbar";
 import {useRouter} from "next/navigation";
 import {ConfirmationDialog} from "@/components/molecules/ConfirmationDialog";
 import {useState} from "react";
-import {ProductCardwAct} from "@/components/molecules/ProductCardwAct";
 import {useDeleteCommodity, useGetAllCommodityByOwner} from "@/service/query/comodity-query";
 import LoaderOverlay from "@/components/molecules/LoadingOverlay";
 import {Loading} from "@/components/molecules/Loading";
+import ProductCardwAct from "@/components/molecules/ProductCardwAct";
 
 export default function Component() {
     const router = useRouter();
@@ -25,7 +25,7 @@ export default function Component() {
     const [commodityId, setCommodityId] = useState<string | undefined>(undefined);
 
     return (
-        <Column className={"w-full max-w-5xl mx-auto"}>
+        <Column className={"w-full max-w-5xl mx-auto mb-10"}>
             <Navbar/>
 
             <LoaderOverlay isLoading={isPendingDelete}/>

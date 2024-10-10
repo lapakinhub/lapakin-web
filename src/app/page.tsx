@@ -21,7 +21,7 @@ export default function Home() {
 
 
     return (
-        <Column className={'w-full mx-auto max-w-5xl'}>
+        <Column className={'w-full mx-auto max-w-5xl mb-10'}>
             <Navbar/>
 
             <div className={'my-2'}></div>
