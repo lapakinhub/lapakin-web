@@ -16,12 +16,20 @@ import {useDeleteCommodity, useGetAllCommodityByOwner} from "@/service/query/com
 import LoaderOverlay from "@/components/molecules/LoadingOverlay";
 import {Loading} from "@/components/molecules/Loading";
 import ProductCardwAct from "@/components/molecules/ProductCardwAct";
+import SearchBarWithFilter from "@/components/molecules/SearchFilter";
 
 export default function Component() {
     const router = useRouter();
     const [open, setOpen] = useState(false);
-    const {data: commodities, isLoading} = useGetAllCommodityByOwner();
-    const {mutate: doDeleteCommodity, isPending: isPendingDelete,} = useDeleteCommodity();
+
+    const [type, setType] = useState<"all" | "filter">("all")
+    const [query, setQuery] = useState<string>()
+    const [location, setLocation] = useState<string>()
+    const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+
+    const {data: commodities, isLoading} = useGetAllCommodityByOwner(type, query, location, sort);
+
+    const {mutate: doDeleteCommodity, isPending: isPendingDelete} = useDeleteCommodity();
     const [commodityId, setCommodityId] = useState<string | undefined>(undefined);
 
     return (
@@ -43,9 +51,35 @@ export default function Component() {
 
             <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold">Comodity</h1>
-                    <Button onClick={() => router.push("/add-product")} size="sm">Create New Comodity</Button>
+                    <h1 className="text-2xl font-bold">Komoditas ku</h1>
+                    <Button onClick={() => router.push("/add-product")} size="sm">Buat Komoditas Baru</Button>
                 </div>
+
+                <div className={'mb-4'}>
+                    <SearchBarWithFilter
+                        onSort={(sortOption: 'newest' | 'oldest') => {
+                            setSort(sortOption)
+                        }}
+                        onSearch={(query: string) => {
+                            if (query.length === 0) {
+                                setQuery(undefined)
+                                return
+                            }
+                            setType('filter')
+                            setQuery(query)
+                        }} onFilter={
+                        (location: string) => {
+                            console.log(location)
+                            if (location === 'all') {
+                                setLocation(undefined)
+                                return
+                            }
+                            setType('filter')
+                            setLocation(location)
+                        }
+                    }/>
+                </div>
+
 
                 {
                     commodities?.length === 0 && (

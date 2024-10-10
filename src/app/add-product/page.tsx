@@ -346,7 +346,15 @@ export default function AddCommodityForm() {
                         return <LocationPicker key={field} form={form}/>
                     }
                     if (["facilities", "specialConditions", "allowedBusinessTypes", "security", "rentalRequirements", "flexibility"].includes(field)) {
-                        return renderCheckboxGroup(field as keyof typeof customOptions, field)
+                        const translatedProperties: Record<string, string> = {
+                            "facilities": "Fasilitas",
+                            "specialConditions": "Kondisi Khusus",
+                            "allowedBusinessTypes": "Jenis Usaha yang Diizinkan",
+                            "security": "Keamanan",
+                            "rentalRequirements": "Persyaratan Sewa",
+                            "flexibility": "Fleksibilitas"
+                        };
+                        return renderCheckboxGroup(field as keyof typeof customOptions, translatedProperties[field])
                     }
                     return (
                         <FormField

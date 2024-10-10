@@ -43,23 +43,25 @@ export const useUpdateCommodity = () => {
     })
 }
 
-export const useGetAllCommodity = (type?: "filter" | "all", query?: string, location?: string) => useQuery<Commodity[]>({
-    queryKey: ['commodities', type, query, location],
+export const useGetAllCommodity = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest') => useQuery<Commodity[]>({
+    queryKey: ['commodities', type, query, location, sort],
     queryFn: async () => {
 
         if (type === "filter" && query || location) {
-            return await getAllCommodityByName(query, location)
+            return await getAllCommodityByName(query, location, sort)
         }
 
-        return await getAllCommodity();
+        return await getAllCommodity(sort);
     }
 })
 
 
-export const useGetAllCommodityByOwner = () => useQuery<Commodity[]>({
-    queryKey: ['commodities', 'owner'],
+export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest') => useQuery<Commodity[]>({
+    queryKey: ['commodities', 'owner', type, query, location, sort],
     queryFn: async () => {
-        return await getAllCommodityByOwner();
+
+
+        return await getAllCommodityByOwner(sort)
     },
 })
 

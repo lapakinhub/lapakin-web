@@ -16,8 +16,9 @@ export default function Home() {
     const [type, setType] = useState<"all" | "filter">("all")
     const [query, setQuery] = useState<string>()
     const [location, setLocation] = useState<string>()
+    const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
 
-    const {data: commoedities, isLoading} = useGetAllCommodity(type, query, location);
+    const {data: commoedities, isLoading} = useGetAllCommodity(type, query, location, sort);
 
 
     return (
@@ -26,15 +27,18 @@ export default function Home() {
 
             <div className={'my-2'}></div>
 
-            <SearchBarWithFilter onSearch={(query: string) => {
-                if (query.length === 0) {
-                    setQuery(undefined)
-                    return
-                }
-
-                setType('filter')
-                setQuery(query)
-            }} onFilter={
+            <SearchBarWithFilter
+                onSort={(sortOption: 'newest' | 'oldest') => {
+                    setSort(sortOption)
+                }}
+                onSearch={(query: string) => {
+                    if (query.length === 0) {
+                        setQuery(undefined)
+                        return
+                    }
+                    setType('filter')
+                    setQuery(query)
+                }} onFilter={
                 (location: string) => {
                     console.log(location)
                     if (location === 'all') {

@@ -63,10 +63,10 @@ const fetchCommodities = async (constraints: QueryConstraint[]): Promise<Commodi
     const q = query(commoditiesCollection, ...constraints); // Apply query constraints
 
     const snapshot = await getDocs(q);
+
     return snapshot.docs.map((doc) => {
         const data = doc.data() as Commodity;
 
-        // Convert Firestore Timestamp to Date if necessary
         if (data.lastModified && (data.lastModified as any).toDate) {
             data.lastModified = (data.lastModified as any).toDate();
         }
@@ -75,21 +75,39 @@ const fetchCommodities = async (constraints: QueryConstraint[]): Promise<Commodi
     });
 };
 
-export const getAllCommodity = async (): Promise<Commodity[]> => {
-    return fetchCommodities([orderBy("lastModified", "desc")]);
+export const getAllCommodity = async (sort?: "newest" | "oldest"): Promise<Commodity[]> => {
+    console.log(sort)
+    return fetchCommodities([orderBy("lastModified", sort === 'newest' ? "desc" : "asc")]);
 };
 
-export const getAllCommodityByOwner = async (): Promise<Commodity[]> => {
+export const getAllCommodityByOwner = async (sort?: "newest" | "oldest"): Promise<Commodity[]> => {
     const ownerId = auth.currentUser?.uid;
-    return fetchCommodities([where("ownerId", "==", ownerId)]);
+    return fetchCommodities([ where("ownerId", "==", ownerId), orderBy("lastModified", sort === 'newest' ? "desc" : "asc"),]);
 };
+
+export const getAllCommodityFilterOwner = async (name?: string, location?: string, sort?: 'newest' | 'oldest'): Promise<Commodity[]> => {
+    const commodities = await getAllCommodityByOwner(sort);
+
+    return commodities.filter(commodity => {
+        const matchesName = name
+            ? commodity.title.toLowerCase().includes(name.toLowerCase())
+            : true;
+
+        const matchesLocation = location
+            ? commodity.location?.toLowerCase().includes(location.toLowerCase())
+            : true;
+
+        return matchesName && matchesLocation;
+    });
+};
+
 
 export const getAllCommodityByLocation = async (location: string): Promise<Commodity[]> => {
     return fetchCommodities([where("location", "==", location)]);
 }
 
-export const getAllCommodityByName = async (name?: string, location?: string): Promise<Commodity[]> => {
-    const commodities = await getAllCommodity();
+export const getAllCommodityByName = async (name?: string, location?: string, sort?: 'newest' | 'oldest'): Promise<Commodity[]> => {
+    const commodities = await getAllCommodity(sort);
 
     return commodities.filter(commodity => {
         const matchesName = name
