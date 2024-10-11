@@ -17,6 +17,13 @@ import LoaderOverlay from "@/components/molecules/LoadingOverlay";
 import {Loading} from "@/components/molecules/Loading";
 import ProductCardwAct from "@/components/molecules/ProductCardwAct";
 import SearchBarWithFilter from "@/components/molecules/SearchFilter";
+import {
+    Pagination,
+    PaginationContent, PaginationEllipsis,
+    PaginationItem,
+    PaginationLink, PaginationNext,
+    PaginationPrevious
+} from "@/components/ui/pagination";
 
 export default function Component() {
     const router = useRouter();
@@ -26,11 +33,19 @@ export default function Component() {
     const [query, setQuery] = useState<string>()
     const [location, setLocation] = useState<string>()
     const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+    const [currentPage, setCurrentPage] = useState<number>(1);
 
-    const {data: commodities, isLoading} = useGetAllCommodityByOwner(type, query, location, sort);
+    const {data: commodities, isLoading} = useGetAllCommodityByOwner(type, query, location, sort, currentPage);
 
     const {mutate: doDeleteCommodity, isPending: isPendingDelete} = useDeleteCommodity();
     const [commodityId, setCommodityId] = useState<string | undefined>(undefined);
+
+    const handlePageChange = async (page: number) => {
+        setCurrentPage(page);
+    };
+    if (commodities === undefined) {
+        return <LoaderOverlay isLoading={true}/>
+    }
 
     return (
         <Column className={"w-full max-w-5xl mx-auto mb-10"}>
@@ -109,6 +124,42 @@ export default function Component() {
                     ))}
                 </div>
             </div>
+
+            {commodities.length >= 12 && <Pagination className={"my-10"}>
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious
+                            onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : () => {
+                            }}
+                            isActive={currentPage !== 1}/>
+                    </PaginationItem>
+
+                    {[...Array(commodities![0]?.totalPages || 0)].map((_, index) => {
+                        const pageNumber = index + 1;
+                        return (
+                            <PaginationItem key={pageNumber}>
+                                <PaginationLink
+                                    isActive={currentPage === pageNumber}
+                                    onClick={() => handlePageChange(pageNumber)}
+                                >
+                                    {pageNumber}
+                                </PaginationLink>
+                            </PaginationItem>
+                        );
+                    })}
+
+                    <PaginationItem>
+                        <PaginationEllipsis/>
+                    </PaginationItem>
+
+                    <PaginationItem>
+                        <PaginationNext
+                            onClick={currentPage !== commodities![0]?.totalPages ? () => handlePageChange(currentPage + 1) : () => {
+                            }}
+                            isActive={currentPage !== commodities![0]?.totalPages}/>
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>}
         </Column>
     );
 }

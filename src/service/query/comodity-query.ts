@@ -2,8 +2,8 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Commodity} from "@/types/commodity";
 import {
     deleteCommodity,
-    getAllCommodity, getAllCommodityByName,
-    getAllCommodityByOwner,
+    getAllCommodity, getAllCommodityFilter,
+    getAllCommodityByOwner, getAllCommodityFilterOwner,
     getCommodityById,
     storeComodity, updateCommodity
 } from "@/service/remote/comodity.remote";
@@ -43,25 +43,25 @@ export const useUpdateCommodity = () => {
     })
 }
 
-export const useGetAllCommodity = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest') => useQuery<Commodity[]>({
-    queryKey: ['commodities', type, query, location, sort],
+export const useGetAllCommodity = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest', page: number = 1) => useQuery<Commodity[]>({
+    queryKey: ['commodities', type, query, location, sort, page],
     queryFn: async () => {
 
         if (type === "filter" && query || location) {
-            return await getAllCommodityByName(query, location, sort)
+            return await getAllCommodityFilter(query, location, sort, page)
         }
 
-        return await getAllCommodity(sort);
+        return await getAllCommodity(sort, page);
     }
 })
 
-
-export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest') => useQuery<Commodity[]>({
-    queryKey: ['commodities', 'owner', type, query, location, sort],
+export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest', page: number = 1) => useQuery<Commodity[]>({
+    queryKey: ['commodities', 'owner', type, query, location, sort, page],
     queryFn: async () => {
-
-
-        return await getAllCommodityByOwner(sort)
+        if (type === "filter" && query || location) {
+            return await getAllCommodityFilterOwner(query, location, sort, page)
+        }
+        return await getAllCommodityByOwner(sort, page)
     },
 })
 

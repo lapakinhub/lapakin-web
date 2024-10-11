@@ -58,7 +58,7 @@ export default function ProductCard({ commodity, onClick }: ProductCardProps) {
                 <Badge
                     className="absolute right-4 top-4 bg-white/80 hover:bg-white text-black rounded-full"
                 >
-                    {commodity?.location}
+                    {commodity?.location?.toLowerCase()}
                 </Badge>
                 {images.length > 1 && (
                     <>

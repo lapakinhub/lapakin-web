@@ -6,6 +6,7 @@ import {Toaster} from 'react-hot-toast';
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 
 import localFont from 'next/font/local'
+import Footer from "@/components/atoms/Footer";
 
 const airBncFont = localFont({
     src: [
@@ -32,9 +33,12 @@ export default function RootLayout({children}: Readonly<{
         <ReactQueryClientProvider>
             <html lang="en">
             <body
-                className={`${airBncFont.className} flex flex-col items-start mx-auto w-full antialiased p-4`}
+                className={`${airBncFont.className} antialiased p-4`}
             >
-            {children}
+            <div className={'flex flex-col items-start mx-auto w-full min-h-screen h-full'}>
+                {children}
+            </div>
+            <Footer/>
             <Toaster/>
             <ReactQueryDevtools/>
             </body>

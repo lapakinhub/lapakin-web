@@ -30,4 +30,5 @@ export interface Commodity {
     phoneNumber: string;
     email?: string;
     lastModified?: Date | FieldValue;
+    totalPages?: number
 }

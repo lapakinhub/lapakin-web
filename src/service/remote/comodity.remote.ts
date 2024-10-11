@@ -1,12 +1,13 @@
 import {
     addDoc,
-    collection, deleteDoc, doc, getDoc,
+    collection, deleteDoc, doc, DocumentSnapshot, getDoc,
     getDocs,
     getFirestore,
     orderBy,
     query,
     QueryConstraint,
-    serverTimestamp, setDoc,
+    serverTimestamp, setDoc, startAfter,
+    limit,
     where
 } from "firebase/firestore";
 import {firebaseApp} from "@/lib/firebase";
@@ -57,12 +58,31 @@ export const updateCommodity = async (commodityId: string, propertyData: Commodi
     return commodityId;
 }
 
-const fetchCommodities = async (constraints: QueryConstraint[]): Promise<Commodity[]> => {
+const fetchCommodities = async (
+    constraints: QueryConstraint[],
+    limitValue: number = 12,
+    startAfterDoc?: DocumentSnapshot
+): Promise<Commodity[]> => {
     const commoditiesCollection = collection(db, 'commodities');
 
-    const q = query(commoditiesCollection, ...constraints); // Apply query constraints
+    const allDocsSnapshot = await getDocs(commoditiesCollection);
+    const totalDocuments = allDocsSnapshot.size;
+    const totalPages = Math.ceil(totalDocuments / limitValue);
+
+    const q = query(
+        commoditiesCollection,
+        ...constraints,
+        limit(limitValue),
+        ...(startAfterDoc ? [startAfter(startAfterDoc)] : [])
+    );
 
     const snapshot = await getDocs(q);
+
+
+
+    if (snapshot.empty) {
+        return []; // Return an empty array if no documents found
+    }
 
     return snapshot.docs.map((doc) => {
         const data = doc.data() as Commodity;
@@ -71,22 +91,49 @@ const fetchCommodities = async (constraints: QueryConstraint[]): Promise<Commodi
             data.lastModified = (data.lastModified as any).toDate();
         }
 
-        return {...data, id: doc.id};
+        return { ...data, id: doc.id, totalPages };
     });
 };
 
-export const getAllCommodity = async (sort?: "newest" | "oldest"): Promise<Commodity[]> => {
-    console.log(sort)
-    return fetchCommodities([orderBy("lastModified", sort === 'newest' ? "desc" : "asc")]);
+
+const getLastVisibleDoc = async (constraints: QueryConstraint[], limitValue: number, page: number) => {
+    const commoditiesCollection = collection(db, 'commodities');
+    const q = query(commoditiesCollection, ...constraints, limit(limitValue));
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs[snapshot.docs.length - 1];
 };
 
-export const getAllCommodityByOwner = async (sort?: "newest" | "oldest"): Promise<Commodity[]> => {
+export const getAllCommodity = async (
+    sort?: "newest" | "oldest",
+    page: number = 1,
+    limitValue: number = 12
+): Promise<Commodity[]> => {
+    const constraints = [orderBy("lastModified", sort === 'newest' ? "desc" : "asc")];
+
+    const startAfterDoc = page && page > 1 ? await getLastVisibleDoc(constraints, limitValue, page - 1) : undefined;
+
+    return fetchCommodities(constraints, limitValue, startAfterDoc);
+};
+
+export const getAllCommodityByOwner = async (
+    sort?: "newest" | "oldest",
+    page: number = 1,
+    limitValue: number = 12
+): Promise<Commodity[]> => {
     const ownerId = auth.currentUser?.uid;
-    return fetchCommodities([ where("ownerId", "==", ownerId), orderBy("lastModified", sort === 'newest' ? "desc" : "asc"),]);
+    const constraints = [where("ownerId", "==", ownerId), orderBy("lastModified", sort === 'newest' ? "desc" : "asc"),]
+    const startAfterDoc = page && page > 1 ? await getLastVisibleDoc(constraints, limitValue, page - 1) : undefined;
+    return fetchCommodities(constraints, limitValue, startAfterDoc);
 };
 
-export const getAllCommodityFilterOwner = async (name?: string, location?: string, sort?: 'newest' | 'oldest'): Promise<Commodity[]> => {
-    const commodities = await getAllCommodityByOwner(sort);
+export const getAllCommodityFilterOwner = async (
+    name?: string, location?: string,
+    sort?: 'newest' | 'oldest',
+    page: number = 1,
+    limitValue: number = 12): Promise<Commodity[]> => {
+    const commodities = await getAllCommodityByOwner(sort, page, limitValue);
 
     return commodities.filter(commodity => {
         const matchesName = name
@@ -101,13 +148,12 @@ export const getAllCommodityFilterOwner = async (name?: string, location?: strin
     });
 };
 
-
-export const getAllCommodityByLocation = async (location: string): Promise<Commodity[]> => {
-    return fetchCommodities([where("location", "==", location)]);
-}
-
-export const getAllCommodityByName = async (name?: string, location?: string, sort?: 'newest' | 'oldest'): Promise<Commodity[]> => {
-    const commodities = await getAllCommodity(sort);
+export const getAllCommodityFilter = async (
+    name?: string, location?: string,
+    sort?: 'newest' | 'oldest',
+    page: number = 1,
+    limitValue: number = 12): Promise<Commodity[]> => {
+    const commodities = await getAllCommodity(sort, page, limitValue);
 
     return commodities.filter(commodity => {
         const matchesName = name
