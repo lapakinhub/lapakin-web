@@ -2,7 +2,7 @@
 
 import {useState} from 'react'
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
-import { FormItem, FormLabel, FormControl, FormDescription } from "@/components/ui/form"
+import {FormItem, FormLabel, FormControl, FormDescription, FormMessage} from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ImagePlus, Trash2, X } from "lucide-react"
@@ -140,6 +140,10 @@ export default function ImageUpload(props: ImageUploadProps) {
                     </Button>
                 </div>
             )}
+
+            {
+                files.length === 0 && <FormMessage>Gambar wajib upload minimal 1</FormMessage>
+            }
         </FormItem>
     )
 }
