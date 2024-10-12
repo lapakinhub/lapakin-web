@@ -84,7 +84,7 @@ export default function DetailCommodity() {
                         </Badge>
                     </div>
                     <div className="mt-4">
-                        <p className="text-2xl sm:text-3xl font-bold text-primary">{formatToRupiah(komoditas.price)}</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-primary">{formatToRupiah(komoditas.price ?? 0)}</p>
                         <p className="text-sm text-muted-foreground">per {komoditas.rentalDuration}</p>
                     </div>
                 </CardHeader>
@@ -137,7 +137,7 @@ export default function DetailCommodity() {
                             <div>
                                 <h3 className="font-semibold mb-3 text-lg">Fasilitas</h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {komoditas.facilities.map((facility, index) => (
+                                    {komoditas.facilities && komoditas.facilities.map((facility, index) => (
                                         <Badge key={index} variant="secondary"
                                                className="text-xs px-3 py-1">{facility}</Badge>
                                     ))}
