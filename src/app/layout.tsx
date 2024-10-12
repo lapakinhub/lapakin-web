@@ -22,8 +22,8 @@ const airBncFont = localFont({
 })
 
 export const metadata: Metadata = {
-    title: "Ecommerce",
-    description: "Ecommerce App",
+    title: "Lapakin",
+    description: "Lapakin Web App",
 };
 
 export default function RootLayout({children}: Readonly<{

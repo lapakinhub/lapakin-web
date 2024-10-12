@@ -30,32 +30,7 @@ import {useGetAuthUser} from "@/service/query/auth.query"
 import LoaderOverlay from "@/components/molecules/LoadingOverlay"
 import {Progress} from "@/components/ui/progress"
 import ImageUpload from "@/components/molecules/ImageUpload";
-
-const propertySchema = z.object({
-    title: z.string({message: "Wajib di isi"}).min(1, 'Judul comodity harus diisi'),
-    type: z.enum(['Halaman', 'Ruko/Kios', 'Gedung/Mall', 'Stan/Booth', 'Kantin', 'Gudang', 'Tanah Kosong'] as const),
-    address: z.string().min(1, 'Alamat comodity harus diisi'),
-    description: z.string(),
-    price: z.number().min(0, 'Harga tidak boleh negatif'),
-    rentalDuration: z.enum(['Harian', 'Mingguan', 'Bulanan', 'Tahunan'] as const),
-    area: z.number().min(0, 'Luas area tidak boleh negatif'),
-    facilities: z.array(z.string()),
-    videoUrl: z.string().url('URL video tidak valid').optional().or(z.literal('')),
-    specialConditions: z.array(z.string()),
-    allowedBusinessTypes: z.array(z.string()),
-    transactionType: z.enum(['Sewa', 'Bagi Hasil'] as const),
-    security: z.array(z.string()),
-    availability: z.date(),
-    rentalRequirements: z.array(z.string()),
-    flexibility: z.array(z.string()),
-    images: z.array(z.string()),
-    ownerName: z.string().min(1, 'Nama pemilik comodity harus diisi'),
-    phoneNumber: z.string().min(10, 'Nomor telepon tidak valid'),
-    email: z.string().email('Email tidak valid').optional().or(z.literal('')),
-    location: z.string().min(1, 'Lokasi comodity harus diisi'),
-})
-
-export type CommodityFormData = z.infer<typeof propertySchema>
+import {CommodityFormData, propertySchema} from "@/data/schema";
 
 const defaultOptions = {
     facilities: ['Parkir', 'AC', 'Koneksi Internet', 'Akses 24/7', 'Listrik', 'Air'],

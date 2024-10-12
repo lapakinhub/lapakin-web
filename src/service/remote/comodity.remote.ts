@@ -79,7 +79,6 @@ const fetchCommodities = async (
     const snapshot = await getDocs(q);
 
 
-
     if (snapshot.empty) {
         return []; // Return an empty array if no documents found
     }
@@ -91,7 +90,7 @@ const fetchCommodities = async (
             data.lastModified = (data.lastModified as any).toDate();
         }
 
-        return { ...data, id: doc.id, totalPages };
+        return {...data, id: doc.id, totalPages};
     });
 };
 
@@ -106,11 +105,11 @@ const getLastVisibleDoc = async (constraints: QueryConstraint[], limitValue: num
 };
 
 export const getAllCommodity = async (
-    sort?: "newest" | "oldest",
+    sort?: "newest" | "oldest" | "cheap",
     page: number = 1,
     limitValue: number = 12
 ): Promise<Commodity[]> => {
-    const constraints = [orderBy("lastModified", sort === 'newest' ? "desc" : "asc")];
+    const constraints = [orderBy("lastModified", "desc")];
 
     const startAfterDoc = page && page > 1 ? await getLastVisibleDoc(constraints, limitValue, page - 1) : undefined;
 
@@ -118,24 +117,24 @@ export const getAllCommodity = async (
 };
 
 export const getAllCommodityByOwner = async (
-    sort?: "newest" | "oldest",
+    sort?: "newest" | "oldest" | "cheap",
     page: number = 1,
     limitValue: number = 12
 ): Promise<Commodity[]> => {
     const ownerId = auth.currentUser?.uid;
-    const constraints = [where("ownerId", "==", ownerId), orderBy("lastModified", sort === 'newest' ? "desc" : "asc"),]
+    const constraints = [where("ownerId", "==", ownerId), orderBy("lastModified", "desc"),]
     const startAfterDoc = page && page > 1 ? await getLastVisibleDoc(constraints, limitValue, page - 1) : undefined;
     return fetchCommodities(constraints, limitValue, startAfterDoc);
 };
 
 export const getAllCommodityFilterOwner = async (
     name?: string, location?: string,
-    sort?: 'newest' | 'oldest',
+    sort?: 'newest' | 'oldest' | 'cheap',
     page: number = 1,
     limitValue: number = 12): Promise<Commodity[]> => {
     const commodities = await getAllCommodityByOwner(sort, page, limitValue);
 
-    return commodities.filter(commodity => {
+    const filtered = commodities.filter(commodity => {
         const matchesName = name
             ? commodity.title.toLowerCase().includes(name.toLowerCase())
             : true;
@@ -144,18 +143,27 @@ export const getAllCommodityFilterOwner = async (
             ? commodity.location?.toLowerCase().includes(location.toLowerCase())
             : true;
 
+
         return matchesName && matchesLocation;
     });
+
+    if (sort === 'cheap') {
+        return filtered.sort((a, b) => a.price - b.price); // Ascending order (cheapest first)
+    }
+
+    return filtered
 };
 
 export const getAllCommodityFilter = async (
-    name?: string, location?: string,
-    sort?: 'newest' | 'oldest',
+    name?: string,
+    location?: string,
+    sort?: 'newest' | 'oldest' | 'cheap',
     page: number = 1,
-    limitValue: number = 12): Promise<Commodity[]> => {
+    limitValue: number = 12
+): Promise<Commodity[]> => {
     const commodities = await getAllCommodity(sort, page, limitValue);
 
-    return commodities.filter(commodity => {
+    const filteredCommodities = commodities.filter(commodity => {
         const matchesName = name
             ? commodity.title.toLowerCase().includes(name.toLowerCase())
             : true;
@@ -166,6 +174,13 @@ export const getAllCommodityFilter = async (
 
         return matchesName && matchesLocation;
     });
+
+    if (sort === 'cheap') {
+        return filteredCommodities.sort((a, b) => a.price - b.price);
+    }
+
+
+    return filteredCommodities;
 };
 
 

@@ -7,7 +7,7 @@ import {useRouter} from "next/navigation";
 import SearchBarWithFilter from "@/components/molecules/SearchFilter";
 import {useGetAllCommodity} from "@/service/query/comodity-query";
 import {Loading} from "@/components/molecules/Loading";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Row} from "@/components/wrapper/Row";
 import {Button} from "@/components/ui/button";
 import {
@@ -25,18 +25,20 @@ export default function Home() {
     const [type, setType] = useState<"all" | "filter">("all")
     const [query, setQuery] = useState<string>()
     const [location, setLocation] = useState<string>()
-    const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+    const [sort, setSort] = useState<'newest' | 'oldest' | 'cheap'>('newest')
     const [currentPage, setCurrentPage] = useState<number>(1);
-
+    const [totalPage, setTotalPage] = useState(0);
     const {data: commodities, isLoading} = useGetAllCommodity(type, query, location, sort, currentPage);
 
     const handlePageChange = async (page: number) => {
         setCurrentPage(page);
     };
 
-    if (commodities === undefined) {
-        return <LoaderOverlay isLoading={true}/>
-    }
+    useEffect(() => {
+        if (commodities !== undefined) {
+            setTotalPage(commodities[0]?.totalPages || 0)
+        }
+    }, [commodities, query, location, sort, currentPage]);
 
 
     return (
@@ -46,7 +48,7 @@ export default function Home() {
             <div className={'my-2'}></div>
 
             <SearchBarWithFilter
-                onSort={(sortOption: 'newest' | 'oldest') => {
+                onSort={(sortOption: 'newest' | 'oldest' | 'cheap') => {
                     setSort(sortOption)
                 }}
                 onSearch={(query: string) => {
@@ -93,15 +95,19 @@ export default function Home() {
             </div>
 
 
-            <Pagination className={"my-10"}>
+            {<Pagination className={"my-10"}>
                 <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious
-                            onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : () => {}}
-                            isActive={currentPage !== 1}/>
-                    </PaginationItem>
+                    {
+                        currentPage !== 1 && <PaginationItem>
+                            <PaginationPrevious
+                                onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : () => {
+                                }}
+                                isActive={currentPage !== 1}/>
+                        </PaginationItem>
+                    }
 
-                    {[...Array(commodities![0]?.totalPages || 0)].map((_, index) => {
+
+                    {[...Array(totalPage)].map((_, index) => {
                         const pageNumber = index + 1;
                         return (
                             <PaginationItem key={pageNumber}>
@@ -119,12 +125,16 @@ export default function Home() {
                         <PaginationEllipsis/>
                     </PaginationItem>
 
-                    <PaginationItem>
-                        <PaginationNext onClick={currentPage !== commodities![0]?.totalPages ? () => handlePageChange(currentPage + 1) : () => {}}
-                                        isActive={currentPage !== commodities![0]?.totalPages}/>
-                    </PaginationItem>
+                    {
+                        currentPage !== totalPage && <PaginationItem>
+                            <PaginationNext
+                                onClick={currentPage !== totalPage ? () => handlePageChange(currentPage + 1) : () => {
+                                }}
+                                isActive={currentPage !== totalPage}/>
+                        </PaginationItem>
+                    }
                 </PaginationContent>
-            </Pagination>
+            </Pagination>}
 
 
         </Column>

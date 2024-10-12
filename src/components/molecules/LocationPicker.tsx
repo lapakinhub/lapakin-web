@@ -1,21 +1,21 @@
 'use client'
 
 import * as React from "react"
-import { useState, useMemo, useRef, useCallback, useEffect } from "react"
-import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { UseFormReturn } from "react-hook-form"
-import { CommodityFormData } from "@/app/add-product/page"
-import { Search, MapPin } from 'lucide-react'
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Button } from "@/components/ui/button"
-import { useDebounce } from "@/hooks/use-debounce"
+import {useState, useMemo, useRef, useCallback, useEffect} from "react"
+import {FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage} from "@/components/ui/form"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Input} from "@/components/ui/input"
+import {UseFormReturn} from "react-hook-form"
+import {CommodityFormData} from "@/app/add-product/page"
+import {Search, MapPin} from 'lucide-react'
+import {ScrollArea} from "@/components/ui/scroll-area"
+import {Button} from "@/components/ui/button"
+import {useDebounce} from "@/hooks/use-debounce"
 import {locationData} from "@/data/location";
 
 const locations = locationData
 
-export default function LocationPicker({ form }: { form: UseFormReturn<CommodityFormData> }) {
+export default function LocationPicker({form}: { form: UseFormReturn<CommodityFormData> }) {
     const [selectedProvince, setSelectedProvince] = useState<string | null>(null)
     const [provinceSearchTerm, setProvinceSearchTerm] = useState("")
     const [citySearchTerm, setCitySearchTerm] = useState("")
@@ -53,9 +53,10 @@ export default function LocationPicker({ form }: { form: UseFormReturn<Commodity
     const handleProvinceChange = useCallback((province: string) => {
         setSelectedProvince(province)
         setCitySearchTerm("")
-        form.setValue("location", "")
         setIsProvinceOpen(false)
-        setTimeout(() => setIsCityOpen(true), 0)
+        if (form.getValues("location") === null) {
+            setTimeout(() => setIsCityOpen(true), 0)
+        }
     }, [form])
 
     const handleCityChange = useCallback((city: string) => {
@@ -94,27 +95,24 @@ export default function LocationPicker({ form }: { form: UseFormReturn<Commodity
         }
     }, [filteredCities, handleCityChange])
 
-    // Initialize with the city value from the form
     useEffect(() => {
-        console.log(form.getValues("location"))
         const initialCity = form.getValues("location")
+        console.log(form.getValues("location"))
         if (initialCity) {
             const foundProvince = Object.entries(locations).find(([_, cities]) =>
                 cities.includes(initialCity)
             )
-            if (foundProvince) {
-                setSelectedProvince(foundProvince[0])
-            } else {
-                setIsCustomLocation(true)
-            }
+            console.log(foundProvince ? foundProvince[0] : "")
+            setSelectedProvince(foundProvince ? foundProvince[0] : "Jawa Timur")
+
         }
-    }, [form.getValues('location')])
+    }, [form.getValues('location'), selectedProvince])
 
     return (
         <FormField
             control={form.control}
             name="location"
-            render={({ field }) => (
+            render={({field}) => (
                 <FormItem className="space-y-2">
                     <FormLabel>Lokasi Properti</FormLabel>
                     <FormControl>
@@ -128,11 +126,11 @@ export default function LocationPicker({ form }: { form: UseFormReturn<Commodity
                                         value={selectedProvince || ""}
                                     >
                                         <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Pilih Provinsi" />
+                                            <SelectValue placeholder="Pilih Provinsi"/>
                                         </SelectTrigger>
                                         <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
                                             <div className="flex items-center space-x-2 px-3 py-2 border-b">
-                                                <Search className="h-4 w-4 text-muted-foreground" />
+                                                <Search className="h-4 w-4 text-muted-foreground"/>
                                                 <Input
                                                     ref={provinceSearchRef}
                                                     placeholder="Cari provinsi..."
@@ -164,14 +162,14 @@ export default function LocationPicker({ form }: { form: UseFormReturn<Commodity
                                             open={isCityOpen}
                                             onOpenChange={setIsCityOpen}
                                             onValueChange={handleCityChange}
-                                            value={field.value}
+                                            value={form.getValues("location")}
                                         >
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Pilih Kota/Kabupaten" />
+                                                <SelectValue placeholder="Pilih Kota/Kabupaten"/>
                                             </SelectTrigger>
                                             <SelectContent onCloseAutoFocus={(e) => e.preventDefault()}>
                                                 <div className="flex items-center space-x-2 px-3 py-2 border-b">
-                                                    <Search className="h-4 w-4 text-muted-foreground" />
+                                                    <Search className="h-4 w-4 text-muted-foreground"/>
                                                     <Input
                                                         ref={citySearchRef}
                                                         placeholder="Cari kota/kabupaten..."
@@ -226,16 +224,17 @@ export default function LocationPicker({ form }: { form: UseFormReturn<Commodity
                                             field.onChange("")
                                         }}
                                     >
-                                        <MapPin className="h-4 w-4" />
+                                        <MapPin className="h-4 w-4"/>
                                     </Button>
                                 </div>
                             )}
                         </div>
                     </FormControl>
                     <FormDescription>
-                        Pilih lokasi properti dari daftar provinsi dan kota/kabupaten, atau masukkan lokasi kustom jika tidak tercantum.
+                        Pilih lokasi properti dari daftar provinsi dan kota/kabupaten, atau masukkan lokasi kustom jika
+                        tidak tercantum.
                     </FormDescription>
-                    <FormMessage />
+                    <FormMessage/>
                 </FormItem>
             )}
         />

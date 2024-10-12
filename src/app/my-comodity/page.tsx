@@ -11,7 +11,7 @@ import {Column} from "@/components/wrapper/Column";
 import Navbar from "@/components/molecules/Navbar";
 import {useRouter} from "next/navigation";
 import {ConfirmationDialog} from "@/components/molecules/ConfirmationDialog";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useDeleteCommodity, useGetAllCommodityByOwner} from "@/service/query/comodity-query";
 import LoaderOverlay from "@/components/molecules/LoadingOverlay";
 import {Loading} from "@/components/molecules/Loading";
@@ -32,9 +32,9 @@ export default function Component() {
     const [type, setType] = useState<"all" | "filter">("all")
     const [query, setQuery] = useState<string>()
     const [location, setLocation] = useState<string>()
-    const [sort, setSort] = useState<'newest' | 'oldest'>('newest')
+    const [sort, setSort] = useState<'newest' | 'oldest' | 'cheap'>('newest')
     const [currentPage, setCurrentPage] = useState<number>(1);
-
+    const [totalPage, setTotalPage] = useState(0);
     const {data: commodities, isLoading} = useGetAllCommodityByOwner(type, query, location, sort, currentPage);
 
     const {mutate: doDeleteCommodity, isPending: isPendingDelete} = useDeleteCommodity();
@@ -43,9 +43,13 @@ export default function Component() {
     const handlePageChange = async (page: number) => {
         setCurrentPage(page);
     };
-    if (commodities === undefined) {
-        return <LoaderOverlay isLoading={true}/>
-    }
+
+    useEffect(() => {
+        if (commodities !== undefined) {
+            setTotalPage(commodities[0]?.totalPages || 0)
+        }
+    }, [commodities, query, location, sort, currentPage]);
+
 
     return (
         <Column className={"w-full max-w-5xl mx-auto mb-10"}>
@@ -66,13 +70,13 @@ export default function Component() {
 
             <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold">Komoditas ku</h1>
+                    <h1 className="text-2xl font-bold">Komoditas Saya</h1>
                     <Button onClick={() => router.push("/add-product")} size="sm">Buat Komoditas Baru</Button>
                 </div>
 
                 <div className={'mb-4'}>
                     <SearchBarWithFilter
-                        onSort={(sortOption: 'newest' | 'oldest') => {
+                        onSort={(sortOption: 'newest' | 'oldest' | 'cheap') => {
                             setSort(sortOption)
                         }}
                         onSearch={(query: string) => {
@@ -125,16 +129,19 @@ export default function Component() {
                 </div>
             </div>
 
-            {commodities.length >= 12 && <Pagination className={"my-10"}>
+            {commodities && commodities.length >= 12 && <Pagination className={"my-10"}>
                 <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious
-                            onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : () => {
-                            }}
-                            isActive={currentPage !== 1}/>
-                    </PaginationItem>
+                    {
+                        currentPage !== 1 && <PaginationItem>
+                            <PaginationPrevious
+                                onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : () => {
+                                }}
+                                isActive={currentPage !== 1}/>
+                        </PaginationItem>
+                    }
 
-                    {[...Array(commodities![0]?.totalPages || 0)].map((_, index) => {
+
+                    {[...Array(totalPage)].map((_, index) => {
                         const pageNumber = index + 1;
                         return (
                             <PaginationItem key={pageNumber}>
@@ -152,12 +159,14 @@ export default function Component() {
                         <PaginationEllipsis/>
                     </PaginationItem>
 
-                    <PaginationItem>
-                        <PaginationNext
-                            onClick={currentPage !== commodities![0]?.totalPages ? () => handlePageChange(currentPage + 1) : () => {
-                            }}
-                            isActive={currentPage !== commodities![0]?.totalPages}/>
-                    </PaginationItem>
+                    {
+                        currentPage !== totalPage && <PaginationItem>
+                            <PaginationNext
+                                onClick={currentPage !== totalPage ? () => handlePageChange(currentPage + 1) : () => {
+                                }}
+                                isActive={currentPage !== totalPage}/>
+                        </PaginationItem>
+                    }
                 </PaginationContent>
             </Pagination>}
         </Column>

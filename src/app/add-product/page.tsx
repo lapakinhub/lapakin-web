@@ -3,7 +3,6 @@
 import {useEffect, useState} from 'react'
 import {useForm} from 'react-hook-form'
 import {zodResolver} from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import {Input} from "@/components/ui/input"
 import {Textarea} from "@/components/ui/textarea"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
@@ -30,31 +29,7 @@ import {useGetAuthUser} from "@/service/query/auth.query"
 import LoaderOverlay from "@/components/molecules/LoadingOverlay"
 import {Progress} from "@/components/ui/progress";
 import ImageUpload from "@/components/molecules/ImageUpload";
-
-const propertySchema = z.object({
-    title: z.string({message: "Wajib di isi"}).min(1, 'Judul comodity harus diisi'),
-    type: z.enum(['Halaman', 'Ruko/Kios', 'Gedung/Mall', 'Stan/Booth', 'Kantin', 'Gudang', 'Tanah Kosong'] as const),
-    address: z.string().min(1, 'Alamat comodity harus diisi'),
-    description: z.string(),
-    price: z.number().min(0, 'Harga tidak boleh negatif'),
-    rentalDuration: z.enum(['Harian', 'Mingguan', 'Bulanan', 'Tahunan'] as const),
-    area: z.number().min(0, 'Luas area tidak boleh negatif'),
-    facilities: z.array(z.string()),
-    videoUrl: z.string().url('URL video tidak valid').optional().or(z.literal('')),
-    specialConditions: z.array(z.string()),
-    allowedBusinessTypes: z.array(z.string()),
-    transactionType: z.enum(['Sewa', 'Bagi Hasil'] as const),
-    security: z.array(z.string()),
-    availability: z.date(),
-    rentalRequirements: z.array(z.string()),
-    flexibility: z.array(z.string()),
-    ownerName: z.string().min(1, 'Nama pemilik comodity harus diisi'),
-    phoneNumber: z.string().min(10, 'Nomor telepon tidak valid'),
-    images: z.array(z.string()),
-    email: z.string().email('Email tidak valid').optional().or(z.literal('')),
-    location: z.string().min(1, 'Lokasi comodity harus diisi'),
-})
-export type CommodityFormData = z.infer<typeof propertySchema>
+import {CommodityFormData, propertySchema} from "@/data/schema";
 
 const defaultOptions = {
     facilities: ['Parkir', 'AC', 'Koneksi Internet', 'Akses 24/7', 'Listrik', 'Air'],
@@ -94,6 +69,7 @@ export default function AddCommodityForm() {
     const {data: authUser, isLoading: isLoadUser} = useGetAuthUser()
     const form = useForm<CommodityFormData>({
         resolver: zodResolver(propertySchema),
+        mode: "onChange",
         defaultValues: {
             facilities: [],
             specialConditions: [],
@@ -102,17 +78,39 @@ export default function AddCommodityForm() {
             rentalRequirements: [],
             flexibility: [],
             images: [],
-            videoUrl: "",
-            location: "",
-            ownerName: "",
-            email: auth.currentUser?.email ?? "",
-            transactionType: "Sewa",
+            email: auth.currentUser?.email ?? undefined,
             availability: new Date(),
-            description: "",
-            address: "",
-            type: "Halaman"
+            price: 0,
+            videoUrl: ""
         }
     })
+
+    const [isStepValid, setIsStepValid] = useState(false)
+
+    useEffect(() => {
+        const validateStep = async () => {
+            const currentFields = steps[currentStep].fields as (keyof CommodityFormData)[];
+            const result = await form.trigger(currentFields);
+            if(currentStep == 2) {
+                setIsStepValid(imageFiles.length > 0 && result)
+            } else if(currentStep == 1) {
+                setIsStepValid(form.getValues('price') > 0 && result)
+            } else {
+                setIsStepValid(result);
+            }// Update step validation status
+        };
+
+        // Trigger validation on form changes
+        const subscription = form.watch(() => {
+            validateStep();
+        });
+
+        // Trigger validation when the step changes
+        validateStep();  // Ensure validation happens when step changes
+
+        // Cleanup the subscription to avoid memory leaks
+        return () => subscription.unsubscribe();
+    }, [currentStep, form.watch, imageFiles]);
 
     useEffect(() => {
         form.setValue('ownerName', authUser?.fullName ?? '')
@@ -490,8 +488,9 @@ export default function AddCommodityForm() {
 
     return (
         <Column className={'max-w-3xl mx-auto w-full'}>
-            <LoaderOverlay isLoading={isLoadUser}/>
-            <Button type={"button"} className={'my-4'} variant={'secondary'} onClick={() => route.back()}>Kembali</Button>
+            <LoaderOverlay isLoading={isLoadUser || isPending}/>
+            <Button type={"button"} className={'my-4'} variant={'secondary'}
+                    onClick={() => route.back()}>Kembali</Button>
 
             <Card className="w-full">
                 <CardHeader>
@@ -509,7 +508,7 @@ export default function AddCommodityForm() {
                                             type={"button"}
                                             variant={currentStep === index ? "default" : "outline"}
                                             onClick={() => setCurrentStep(index)}
-                                            className="px-2 py-1 text-sm"
+                                            className="px-4 py-1 text-sm"
                                         >
                                             {index + 1}
                                         </Button>
@@ -532,12 +531,13 @@ export default function AddCommodityForm() {
                         <ChevronLeft className="mr-2 h-4 w-4"/> Sebelumnya
                     </Button>
                     {currentStep === steps.length - 1 ? (
-                        <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={isPending}>
+                        <Button type="submit" onClick={form.handleSubmit(onSubmit)} disabled={isPending || !isStepValid}>
                             Tambah Comodity
                         </Button>
                     ) : (
                         <Button
                             type="button"
+                            disabled={!isStepValid}
                             onClick={() => setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1))}
                         >
                             Selanjutnya <ChevronRight className="ml-2 h-4 w-4"/>

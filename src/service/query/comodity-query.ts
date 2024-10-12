@@ -17,6 +17,9 @@ export const useCommodityStore = () => useMutation<string, FirebaseError, { como
     onSuccess: async () => {
         toast.success('Commodity added successfully');
         window.location.href = `/my-comodity`;
+    },
+    onError: (error) => {
+        toast.error(error.message);
     }
 });
 
@@ -43,25 +46,31 @@ export const useUpdateCommodity = () => {
     })
 }
 
-export const useGetAllCommodity = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest', page: number = 1) => useQuery<Commodity[]>({
+export const useGetAllCommodity = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest' | 'cheap', page: number = 1) => useQuery<Commodity[]>({
     queryKey: ['commodities', type, query, location, sort, page],
     queryFn: async () => {
 
-        if (type === "filter" && query || location) {
-            return await getAllCommodityFilter(query, location, sort, page)
+        if (query || location || sort) {
+            if(query || location || sort == 'cheap') {
+                return await getAllCommodityFilter(query, location, sort, page, 999)
+            }
+            return await getAllCommodityFilter(query, location, sort, page, 12)
         }
 
-        return await getAllCommodity(sort, page);
+        return await getAllCommodity(sort, page, 12);
     }
 })
 
-export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest', page: number = 1) => useQuery<Commodity[]>({
+export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest' | 'cheap', page: number = 1) => useQuery<Commodity[]>({
     queryKey: ['commodities', 'owner', type, query, location, sort, page],
     queryFn: async () => {
-        if (type === "filter" && query || location) {
-            return await getAllCommodityFilterOwner(query, location, sort, page)
+        if (query || location || sort) {
+            if(query || location || sort == 'cheap') {
+                return await getAllCommodityFilterOwner(query, location, sort, page, 999)
+            }
+            return await getAllCommodityFilterOwner(query, location, sort, page, 12)
         }
-        return await getAllCommodityByOwner(sort, page)
+        return await getAllCommodityByOwner(sort, page, 12)
     },
 })
 

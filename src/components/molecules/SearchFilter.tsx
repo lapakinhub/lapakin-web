@@ -25,7 +25,7 @@ import { locationData } from "@/data/location"
 interface SearchBarProps {
     onSearch: (query: string) => void
     onFilter: (city: string) => void
-    onSort: (sortOption: 'newest' | 'oldest') => void
+    onSort: (sortOption: 'newest' | 'oldest' | 'cheap') => void
 }
 
 export default function IntegratedSearchBar({ onSearch, onFilter, onSort }: SearchBarProps) {
@@ -33,7 +33,7 @@ export default function IntegratedSearchBar({ onSearch, onFilter, onSort }: Sear
     const [selectedProvince, setSelectedProvince] = useState<string>('')
     const [selectedCity, setSelectedCity] = useState<string>('')
     const [isOpen, setIsOpen] = useState(false)
-    const [sortOption, setSortOption] = useState<'newest' | 'oldest' | undefined>(undefined)
+    const [sortOption, setSortOption] = useState<'newest' | 'oldest' | 'cheap' | undefined>('newest')
 
     const debouncedSearch = useCallback(
         debounce((query) => {
@@ -62,7 +62,7 @@ export default function IntegratedSearchBar({ onSearch, onFilter, onSort }: Sear
         setIsOpen(false)
     }
 
-    const handleSortChange = (option: 'newest' | 'oldest') => {
+    const handleSortChange = (option: 'newest' | 'oldest'| 'cheap') => {
         setSortOption(option)
         onSort(option)
     }
@@ -89,7 +89,7 @@ export default function IntegratedSearchBar({ onSearch, onFilter, onSort }: Sear
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="newest">Terbaru</SelectItem>
-                                <SelectItem value="oldest">Terlama</SelectItem>
+                                <SelectItem value="cheap">Termurah</SelectItem>
                             </SelectContent>
                         </Select>
                         <Dialog open={isOpen} onOpenChange={setIsOpen}>
