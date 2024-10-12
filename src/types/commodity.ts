@@ -7,15 +7,15 @@ export type RentalDuration = 'Harian' | 'Mingguan' | 'Bulanan' | 'Tahunan';
 
 export interface Commodity {
     id?: string;
-    title: string;
-    type: PropertyType;
-    address: string;
+    title?: string;
+    type?: PropertyType;
+    address?: string;
     location?: string;
-    description: string;
-    price: number;
-    rentalDuration: RentalDuration;
-    area: number;
-    facilities: string[];
+    description?: string;
+    price?: number;
+    rentalDuration?: RentalDuration;
+    area?: number;
+    facilities?: string[];
     images?: string[];
     videoUrl?: string;
     specialConditions?: string[];
