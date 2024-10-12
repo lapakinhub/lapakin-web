@@ -47,23 +47,16 @@ export default function Component() {
         setCurrentPage(page);
     };
 
-    // Calculate total pages based on the total number of commodities
     useEffect(() => {
         if (commodities && commodities.length > 0) {
             setTotalPage(Math.ceil(commodities.length / itemsPerPage)); // Total number of pages
         }
     }, [commodities]);
 
-    // Slice the commodities for the current page
     const currentCommodities = commodities?.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
-
-    // Debugging log to ensure we are slicing correctly
-    console.log("Total Commodities: ", commodities?.length);
-    console.log("Current Page: ", currentPage);
-    console.log("Commodities on Current Page: ", currentCommodities);
 
     return (
         <Column className={"w-full max-w-5xl mx-auto mb-10"}>
@@ -123,7 +116,6 @@ export default function Component() {
 
                 {isLoading && <Loading className={'my-4'}/>}
 
-                {/* Display the commodities on the current page */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {currentCommodities?.map((commodity) => (
                         <ProductCardwAct
