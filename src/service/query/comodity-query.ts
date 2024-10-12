@@ -58,7 +58,8 @@ export const useGetAllCommodity = (type?: "filter" | "all", query?: string, loca
         }
 
         return await getAllCommodity(sort, page, 12);
-    }
+    },
+    gcTime: 0,
 })
 
 export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest' | 'cheap', page: number = 1) => useQuery<Commodity[]>({
@@ -72,6 +73,7 @@ export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: strin
         }
         return await getAllCommodityByOwner(sort, page, 12)
     },
+    gcTime: 0,
 })
 
 export const useGetCommodity = (id: string) => useQuery<Commodity, FirebaseError>({
