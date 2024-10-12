@@ -56,7 +56,6 @@ const PaginationLink = ({
                 variant: isActive ? "default" : "ghost",
                 size,
             }),
-            `${isActive ? "cursor-pointer" : "cursor-not-allowed"}`,
             className
         )}
         {...props}

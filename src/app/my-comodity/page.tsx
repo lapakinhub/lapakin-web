@@ -29,27 +29,41 @@ export default function Component() {
     const router = useRouter();
     const [open, setOpen] = useState(false);
 
-    const [type, setType] = useState<"all" | "filter">("all")
-    const [query, setQuery] = useState<string>()
-    const [location, setLocation] = useState<string>()
-    const [sort, setSort] = useState<'newest' | 'oldest' | 'cheap'>('newest')
+    const [type, setType] = useState<"all" | "filter">("all");
+    const [query, setQuery] = useState<string>();
+    const [location, setLocation] = useState<string>();
+    const [sort, setSort] = useState<'newest' | 'oldest' | 'cheap'>('newest');
     const [currentPage, setCurrentPage] = useState<number>(1);
+    const itemsPerPage = 12; // Set to show 12 items per page
     const [totalPage, setTotalPage] = useState(0);
-    const {data: commodities, isLoading} = useGetAllCommodityByOwner(type, query, location, sort, currentPage);
+
+    // Fetch the commodities, assuming it fetches all items
+    const {data: commodities, isLoading} = useGetAllCommodityByOwner(type, query, location, sort, 1, 9999);
 
     const {mutate: doDeleteCommodity, isPending: isPendingDelete} = useDeleteCommodity();
     const [commodityId, setCommodityId] = useState<string | undefined>(undefined);
 
-    const handlePageChange = async (page: number) => {
+    const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
+    // Calculate total pages based on the total number of commodities
     useEffect(() => {
-        if (commodities !== undefined) {
-            setTotalPage(commodities[0]?.totalPages || 0)
+        if (commodities && commodities.length > 0) {
+            setTotalPage(Math.ceil(commodities.length / itemsPerPage)); // Total number of pages
         }
-    }, [commodities, query, location, sort, currentPage]);
+    }, [commodities]);
 
+    // Slice the commodities for the current page
+    const currentCommodities = commodities?.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // Debugging log to ensure we are slicing correctly
+    console.log("Total Commodities: ", commodities?.length);
+    console.log("Current Page: ", currentPage);
+    console.log("Commodities on Current Page: ", currentCommodities);
 
     return (
         <Column className={"w-full max-w-5xl mx-auto mb-10"}>
@@ -60,12 +74,12 @@ export default function Component() {
             <ConfirmationDialog
                 setIsOpen={setOpen}
                 isOpen={open}
-                description={"Delete this item ?"} onResult={(result) => {
+                description={"Delete this item?"} onResult={(result) => {
                 if (result && commodityId != undefined) {
                     doDeleteCommodity({id: commodityId});
                 }
             }}
-                title={"Are you sure ?"}
+                title={"Are you sure?"}
             />
 
             <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
@@ -81,47 +95,43 @@ export default function Component() {
                         }}
                         onSearch={(query: string) => {
                             if (query.length === 0) {
-                                setQuery(undefined)
-                                return
+                                setQuery(undefined);
+                                return;
                             }
-                            setType('filter')
-                            setQuery(query)
-                        }} onFilter={
-                        (location: string) => {
-                            console.log(location)
+                            setType('filter');
+                            setQuery(query);
+                        }}
+                        onFilter={(location: string) => {
                             if (location === 'all') {
-                                setLocation(undefined)
-                                return
+                                setLocation(undefined);
+                                return;
                             }
-                            setType('filter')
-                            setLocation(location)
-                        }
-                    }/>
+                            setType('filter');
+                            setLocation(location);
+                        }}
+                    />
                 </div>
 
-
-                {
-                    commodities?.length === 0 && (
-                        <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-                            <div className="flex items-center justify-center gap-x-4">
-                                <h1 className="text-2xl font-bold">You don't have any comodity yet</h1>
-                                <Button onClick={() => router.push("/add-product")} size="sm">Create New Comodity</Button>
-                            </div>
+                {commodities?.length === 0 && (
+                    <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
+                        <div className="flex items-center justify-center gap-x-4">
+                            <h1 className="text-2xl font-bold">You don't have any commodity yet</h1>
+                            <Button onClick={() => router.push("/add-product")} size="sm">Create New Commodity</Button>
                         </div>
-                    )
-                }
+                    </div>
+                )}
 
-                {
-                    isLoading && <Loading className={'my-4'}/>
-                }
+                {isLoading && <Loading className={'my-4'}/>}
 
+                {/* Display the commodities on the current page */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {commodities?.map((commodity) => (
+                    {currentCommodities?.map((commodity) => (
                         <ProductCardwAct
+                            key={commodity.id}
                             commodity={commodity}
                             onDelete={() => {
-                                setCommodityId(commodity.id)
-                                setOpen(true)
+                                setCommodityId(commodity.id);
+                                setOpen(true);
                             }}
                             onEdit={() => router.push(`/edit-product?id=${commodity.id}`)}
                         />
@@ -129,43 +139,43 @@ export default function Component() {
                 </div>
             </div>
 
-            {commodities && commodities.length >= 12 && <Pagination className={"my-10"}>
-                <PaginationContent>
-                    {
-                         <PaginationItem>
+            {/* Pagination Component */}
+            {commodities && totalPage > 1 && (
+                <Pagination className={"my-10"}>
+                    <PaginationContent>
+                        <PaginationItem>
                             <PaginationPrevious
-                                onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : () => {
-                                }}
-                                isActive={currentPage !== 1}/>
+                                onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : undefined}
+                                isActive={currentPage !== 1}
+                            />
                         </PaginationItem>
-                    }
 
+                        {Array.from({ length: totalPage }).map((_, index) => {
+                            const pageNumber = index + 1;
+                            return (
+                                <PaginationItem key={pageNumber}>
+                                    <PaginationLink
+                                        isActive={currentPage === pageNumber}
+                                        onClick={() => handlePageChange(pageNumber)}
+                                    >
+                                        {pageNumber}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            );
+                        })}
 
-                    {[...Array(totalPage)].map((_, index) => {
-                        const pageNumber = index + 1;
-                        return (
-                            <PaginationItem key={pageNumber}>
-                                <PaginationLink
-                                    isActive={currentPage === pageNumber}
-                                    onClick={() => handlePageChange(pageNumber)}
-                                >
-                                    {pageNumber}
-                                </PaginationLink>
-                            </PaginationItem>
-                        );
-                    })}
-
-                    {
                         <PaginationItem>
                             <PaginationNext
-                                onClick={currentPage !== totalPage ? () => handlePageChange(currentPage + 1) : () => {
-                                }}
-                                isActive={currentPage !== totalPage}/>
+                                onClick={currentPage !== totalPage ? () => handlePageChange(currentPage + 1) : undefined}
+                                isActive={currentPage !== totalPage}
+                            />
                         </PaginationItem>
-                    }
-                </PaginationContent>
-            </Pagination>}
+                    </PaginationContent>
+                </Pagination>
+            )}
         </Column>
     );
 }
+
+
 

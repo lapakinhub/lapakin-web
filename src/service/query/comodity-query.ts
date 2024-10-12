@@ -52,7 +52,7 @@ export const useGetAllCommodity = (type?: "filter" | "all", query?: string, loca
 
         if (query || location || sort) {
             if(query || location || sort == 'cheap') {
-                return await getAllCommodityFilter(query, location, sort, page, 999)
+                return await getAllCommodityFilter(query, location, sort, page, 9999)
             }
             return await getAllCommodityFilter(query, location, sort, page, 12)
         }
@@ -62,14 +62,14 @@ export const useGetAllCommodity = (type?: "filter" | "all", query?: string, loca
     gcTime: 0,
 })
 
-export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest' | 'cheap', page: number = 1) => useQuery<Commodity[]>({
+export const useGetAllCommodityByOwner = (type?: "filter" | "all", query?: string, location?: string, sort?: 'newest' | 'oldest' | 'cheap', page: number = 1, limit: number = 12) => useQuery<Commodity[]>({
     queryKey: ['commodities', 'owner', type, query, location, sort, page],
     queryFn: async () => {
         if (query || location || sort) {
             if(query || location || sort == 'cheap') {
-                return await getAllCommodityFilterOwner(query, location, sort, page, 999)
+                return await getAllCommodityFilterOwner(query, location, sort, page, 9999)
             }
-            return await getAllCommodityFilterOwner(query, location, sort, page, 12)
+            return await getAllCommodityFilterOwner(query, location, sort, page, limit)
         }
         return await getAllCommodityByOwner(sort, page, 12)
     },
