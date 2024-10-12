@@ -6,12 +6,12 @@ import {FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessag
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Input} from "@/components/ui/input"
 import {UseFormReturn} from "react-hook-form"
-import {CommodityFormData} from "@/app/add-product/page"
 import {Search, MapPin} from 'lucide-react'
 import {ScrollArea} from "@/components/ui/scroll-area"
 import {Button} from "@/components/ui/button"
 import {useDebounce} from "@/hooks/use-debounce"
 import {locationData} from "@/data/location";
+import {CommodityFormData} from "@/data/schema";
 
 const locations = locationData
 
