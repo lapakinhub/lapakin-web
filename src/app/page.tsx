@@ -9,15 +9,13 @@ import {useGetAllCommodity} from "@/service/query/comodity-query";
 import {Loading} from "@/components/molecules/Loading";
 import {useEffect, useState} from "react";
 import {Row} from "@/components/wrapper/Row";
-import {Button} from "@/components/ui/button";
 import {
     Pagination,
-    PaginationContent, PaginationEllipsis,
+    PaginationContent,
     PaginationItem,
     PaginationLink, PaginationNext,
     PaginationPrevious
 } from "@/components/ui/pagination";
-import LoaderOverlay from "@/components/molecules/LoadingOverlay";
 
 export default function Home() {
     const router = useRouter();
@@ -98,7 +96,7 @@ export default function Home() {
             {<Pagination className={"my-10"}>
                 <PaginationContent>
                     {
-                        currentPage !== 1 && <PaginationItem>
+                        <PaginationItem>
                             <PaginationPrevious
                                 onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : () => {
                                 }}
@@ -121,12 +119,8 @@ export default function Home() {
                         );
                     })}
 
-                    <PaginationItem>
-                        <PaginationEllipsis/>
-                    </PaginationItem>
-
                     {
-                        currentPage !== totalPage && <PaginationItem>
+                         <PaginationItem>
                             <PaginationNext
                                 onClick={currentPage !== totalPage ? () => handlePageChange(currentPage + 1) : () => {
                                 }}

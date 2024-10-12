@@ -422,17 +422,17 @@ export default function AddCommodityForm() {
 
     const getFieldLabel = (field: string): string => {
         const labels: { [key: string]: string } = {
-            title: "Judul Comodity",
-            type: "Kategori Comodity",
-            address: "Alamat Comodity",
-            description: "Deskripsi Comodity",
+            title: "Judul Komoditas",
+            type: "Kategori Komoditas",
+            address: "Alamat Komoditas",
+            description: "Deskripsi Komoditas",
             price: "Harga Sewa / Bagi Hasil",
             rentalDuration: "Durasi Sewa",
             area: "Luas Area (m²)",
             videoUrl: "URL Video",
             transactionType: "Tipe Transaksi",
             availability: "Ketersediaan",
-            ownerName: "Nama Pemilik Comodity",
+            ownerName: "Nama Pemilik Komoditas",
             phoneNumber: "Nomor Telepon",
             email: "Email",
         }
@@ -442,9 +442,9 @@ export default function AddCommodityForm() {
     const getFieldPlaceholder = (field: string): string => {
         const placeholders: { [key: string]: string } = {
             title: "Contoh: Sewa Ruko Jl. Stasiun Kota Kediri",
-            type: "Pilih kategori comodity",
-            address: "Masukkan alamat lengkap comodity",
-            description: "Jelaskan detail comodity seperti ukuran, fasilitas, aksesibilitas, kondisi, dll.",
+            type: "Pilih kategori komoditas",
+            address: "Masukkan alamat lengkap komoditas",
+            description: "Jelaskan detail komoditas seperti ukuran, fasilitas, aksesibilitas, kondisi, dll.",
             price: "Masukkan harga dalam Rupiah",
             rentalDuration: "Pilih durasi sewa",
             area: "Masukkan luas area dalam meter persegi",
@@ -460,17 +460,17 @@ export default function AddCommodityForm() {
 
     const getFieldDescription = (field: string): string => {
         const descriptions: { [key: string]: string } = {
-            title: "Masukkan judul yang menarik dan deskriptif untuk comodity Anda.",
-            type: "Pilih kategori yang paling sesuai dengan comodity Anda.",
-            address: "Berikan alamat fisik atau digital yang jelas untuk comodity Anda.",
-            description: "Berikan deskripsi yang lengkap dan menarik tentang comodity Anda.",
+            title: "Masukkan judul yang menarik dan deskriptif untuk komoditas Anda.",
+            type: "Pilih kategori yang paling sesuai dengan komoditas Anda.",
+            address: "Berikan alamat fisik atau digital yang jelas untuk komoditas Anda.",
+            description: "Berikan deskripsi yang lengkap dan menarik tentang komoditas Anda.",
             price: "Masukkan harga sewa atau persentase bagi hasil sesuai kesepakatan.",
-            rentalDuration: "Pilih durasi sewa yang tersedia untuk comodity ini.",
-            area: "Masukkan luas area comodity dalam meter persegi.",
+            rentalDuration: "Pilih durasi sewa yang tersedia untuk komoditas ini.",
+            area: "Masukkan luas area komoditas dalam meter persegi.",
             videoUrl: "Masukkan URL video YouTube atau platform serupa jika ada.",
-            transactionType: "Pilih jenis transaksi yang ditawarkan untuk comodity ini.",
-            availability: "Pilih tanggal ketersediaan comodity.",
-            ownerName: "Masukkan nama pemilik comodity atau tim yang mengelola.",
+            transactionType: "Pilih jenis transaksi yang ditawarkan untuk komoditas ini.",
+            availability: "Pilih tanggal ketersediaan komoditas.",
+            ownerName: "Masukkan nama pemilik komoditas atau tim yang mengelola.",
             phoneNumber: "Masukkan nomor telepon yang dapat dihubungi.",
             email: "Masukkan alamat email untuk komunikasi non-telepon.",
         }
@@ -494,8 +494,8 @@ export default function AddCommodityForm() {
 
             <Card className="w-full">
                 <CardHeader>
-                    <CardTitle>Tambah Comodity Baru</CardTitle>
-                    <CardDescription>Isi formulir di bawah ini untuk menambahkan comodity baru.</CardDescription>
+                    <CardTitle>Tambah Komoditas Baru</CardTitle>
+                    <CardDescription>Isi formulir di bawah ini untuk menambahkan komoditas baru.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>

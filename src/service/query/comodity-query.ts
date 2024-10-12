@@ -15,7 +15,7 @@ export const useCommodityStore = () => useMutation<string, FirebaseError, { como
     mutationKey: ['commodity', 'store'],
     mutationFn: async ({comodity, files}: { comodity: Commodity, files: File[] }) => storeComodity(comodity, files),
     onSuccess: async () => {
-        toast.success('Commodity added successfully');
+        toast.success('Berhasil menambah komoditas');
         window.location.href = `/my-comodity`;
     },
     onError: (error) => {
@@ -38,7 +38,7 @@ export const useUpdateCommodity = () => {
 
             await queryClient.invalidateQueries({queryKey: ['commodities', 'owner']});
 
-            toast.success('Commodity updated successfully');
+            toast.success('Berhasil mengubah komoditas');
         },
         onError: (error) => {
             toast.error(error.message);
@@ -91,7 +91,7 @@ export const useDeleteCommodity = () => {
             await deleteCommodity(id);
         },
         onSuccess: () => {
-            toast.success('Commodity deleted successfully');
+            toast.success('Berhasil menghapus komoditas');
 
             queryClient.invalidateQueries({queryKey: ['commodities', 'owner']});
         },

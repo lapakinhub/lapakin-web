@@ -132,7 +132,7 @@ export default function Component() {
             {commodities && commodities.length >= 12 && <Pagination className={"my-10"}>
                 <PaginationContent>
                     {
-                        currentPage !== 1 && <PaginationItem>
+                         <PaginationItem>
                             <PaginationPrevious
                                 onClick={currentPage !== 1 ? () => handlePageChange(currentPage - 1) : () => {
                                 }}
@@ -160,7 +160,7 @@ export default function Component() {
                     </PaginationItem>
 
                     {
-                        currentPage !== totalPage && <PaginationItem>
+                        <PaginationItem>
                             <PaginationNext
                                 onClick={currentPage !== totalPage ? () => handlePageChange(currentPage + 1) : () => {
                                 }}
