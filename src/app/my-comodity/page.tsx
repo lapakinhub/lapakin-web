@@ -19,7 +19,7 @@ import ProductCardwAct from "@/components/molecules/ProductCardwAct";
 import SearchBarWithFilter from "@/components/molecules/SearchFilter";
 import {
     Pagination,
-    PaginationContent, PaginationEllipsis,
+    PaginationContent,
     PaginationItem,
     PaginationLink, PaginationNext,
     PaginationPrevious
@@ -154,10 +154,6 @@ export default function Component() {
                             </PaginationItem>
                         );
                     })}
-
-                    <PaginationItem>
-                        <PaginationEllipsis/>
-                    </PaginationItem>
 
                     {
                         <PaginationItem>
