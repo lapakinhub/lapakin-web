@@ -136,7 +136,7 @@ export const getAllCommodityFilterOwner = async (
 
     const filtered = commodities.filter(commodity => {
         const matchesName = name
-            ? commodity.title.toLowerCase().includes(name.toLowerCase())
+            ? commodity.title!.toLowerCase().includes(name.toLowerCase())
             : true;
 
         const matchesLocation = location
@@ -148,7 +148,7 @@ export const getAllCommodityFilterOwner = async (
     });
 
     if (sort === 'cheap') {
-        return filtered.sort((a, b) => a.price - b.price); // Ascending order (cheapest first)
+        return filtered.sort((a, b) => a.price! - b!.price!); // Ascending order (cheapest first)
     }
 
     return filtered
@@ -165,7 +165,7 @@ export const getAllCommodityFilter = async (
 
     const filteredCommodities = commodities.filter(commodity => {
         const matchesName = name
-            ? commodity.title.toLowerCase().includes(name.toLowerCase())
+            ? commodity.title?.toLowerCase().includes(name.toLowerCase())
             : true;
 
         const matchesLocation = location
@@ -176,7 +176,7 @@ export const getAllCommodityFilter = async (
     });
 
     if (sort === 'cheap') {
-        return filteredCommodities.sort((a, b) => a.price - b.price);
+        return filteredCommodities.sort((a, b) => a.price! - b.price!);
     }
 
 
