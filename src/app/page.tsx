@@ -70,7 +70,7 @@ export default function Home() {
 
             {commodities && commodities.length === 0 && (
                 <Row className={'w-full justify-center my-4 text-center'}>
-                    <h1 className={'text-2xl'}>No Commodity Found</h1>
+                    <h1 className={'text-2xl'}>Belum Ada Properti Tersedia</h1>
                 </Row>
             )}
 
