@@ -109,7 +109,7 @@ export default function Component() {
                     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
                         <div className="flex items-center justify-center gap-x-4">
                             <h1 className="text-2xl font-bold">You don't have any commodity yet</h1>
-                            <Button onClick={() => router.push("/add-product")} size="sm">Create New Commodity</Button>
+                            <Button onClick={() => router.push("/add-product")} size="sm">Buat Properti Baru</Button>
                         </div>
                     </div>
                 )}
