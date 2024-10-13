@@ -56,7 +56,7 @@ const Navbar: React.FC = () => {
 
     const navItems: NavItem[] = [
         {name: 'Beranda', href: '/', icon: FaHome},
-        {name: 'Komoditas Saya', href: '/my-comodity', icon: AiFillProduct},
+        {name: 'Properti Saya', href: '/my-comodity', icon: AiFillProduct},
         {name: 'Profil', href: '/profile', icon: FaUser},
     ]
 
