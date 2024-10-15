@@ -12,6 +12,7 @@ import {CalendarIcon, MapPin, Mail, Info, ArrowLeft, Home, Briefcase, FileText, 
 import LoaderOverlay from "@/components/molecules/LoadingOverlay"
 import {FaWhatsapp} from "react-icons/fa"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
+import {incrementClickOrder} from "@/service/remote/comodity.remote";
 
 export default function DetailCommodity() {
     const router = useRouter()
@@ -27,13 +28,14 @@ export default function DetailCommodity() {
     if (!komoditas) {
         return (
             <div className="flex flex-col items-center justify-center h-screen p-4">
-                <h2 className="text-xl font-bold mb-4 text-center">Komoditas tidak ditemukan</h2>
+                <h2 className="text-xl font-bold mb-4 text-center">Properti tidak ditemukan</h2>
                 <Button onClick={() => router.back()}>Kembali</Button>
             </div>
         )
     }
 
-    const handleChatSekarang = () => {
+    const handleChatSekarang = async () => {
+        await incrementClickOrder(komoditas.id as string);
         const formattedPhone = komoditas.phoneNumber.startsWith('0')
             ? '62' + komoditas.phoneNumber.slice(1)
             : komoditas.phoneNumber
@@ -56,7 +58,7 @@ export default function DetailCommodity() {
                                 <div className="aspect-[16/9] relative overflow-hidden rounded-t-lg">
                                     <Image
                                         src={image}
-                                        alt={`Gambar komoditas ${index + 1}`}
+                                        alt={`Gambar properti ${index + 1}`}
                                         fill
                                         className="object-cover"
                                     />

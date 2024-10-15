@@ -8,7 +8,7 @@ import {
     QueryConstraint,
     serverTimestamp, setDoc, startAfter,
     limit,
-    where
+    where, updateDoc, increment
 } from "firebase/firestore";
 import {firebaseApp} from "@/lib/firebase";
 import {Commodity} from "@/types/commodity";
@@ -211,4 +211,18 @@ export const getCommodityById = async (commodityId: string): Promise<Commodity> 
 export const deleteCommodity = async (commodityId: string) => {
     const docRef = doc(db, 'commodities', commodityId);
     await deleteDoc(docRef);
+}
+
+export const incrementClickPage =  async (commodityId: string) => {
+    const docRef = doc(db, 'commodities', commodityId);
+    await updateDoc(docRef, {
+        clickPage: increment(1)
+    })
+}
+
+export const incrementClickOrder =  async (commodityId: string) => {
+    const docRef = doc(db, 'commodities', commodityId);
+    await updateDoc(docRef, {
+        clickOrder: increment(1)
+    })
 }

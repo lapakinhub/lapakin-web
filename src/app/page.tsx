@@ -16,6 +16,7 @@ import {
     PaginationLink, PaginationNext,
     PaginationPrevious
 } from "@/components/ui/pagination";
+import { incrementClickPage } from "@/service/remote/comodity.remote";
 
 export default function Home() {
     const router = useRouter();
@@ -32,6 +33,7 @@ export default function Home() {
         setCurrentPage(page);
     };
 
+
     useEffect(() => {
         if (commodities !== undefined) {
             setTotalPage(commodities[0]?.totalPages || 0)
@@ -39,6 +41,10 @@ export default function Home() {
     }, [commodities, query, location, sort, currentPage]);
 
 
+    const handleProductClick = async (commodityId: string) => {
+        await incrementClickPage(commodityId);
+        router.push(`/detail-product?id=${commodityId}`);
+    };
     return (
         <Column className={'w-full mx-auto max-w-5xl mb-10'}>
             <Navbar/>
@@ -82,11 +88,9 @@ export default function Home() {
                 {
                     commodities?.map((commodity) => (
                         <ProductCard
-                            commodity={commodity}
-                            key={commodity.id}
-                            onClick={() => {
-                                router.push(`/detail-product?id=${commodity.id}`)
-                            }}
+                          commodity={commodity}
+                          key={commodity.id}
+                          onClick={() => handleProductClick(commodity.id  as string)}
                         />
                     ))
                 }

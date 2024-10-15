@@ -77,8 +77,8 @@ export default function Component() {
 
             <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
                 <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold">Komoditas Saya</h1>
-                    <Button onClick={() => router.push("/add-product")} size="sm">Buat Komoditas Baru</Button>
+                    <h1 className="text-2xl font-bold">Properti Saya</h1>
+                    <Button onClick={() => router.push("/add-product")} size="sm">Buat Properti Baru</Button>
                 </div>
 
                 <div className={'mb-4'}>

@@ -422,17 +422,17 @@ export default function AddCommodityForm() {
 
     const getFieldLabel = (field: string): string => {
         const labels: { [key: string]: string } = {
-            title: "Judul Komoditas",
-            type: "Kategori Komoditas",
-            address: "Alamat Komoditas",
-            description: "Deskripsi Komoditas",
+            title: "Judul Properti",
+            type: "Kategori Properti",
+            address: "Alamat Properti",
+            description: "Deskripsi Properti",
             price: "Harga Sewa / Bagi Hasil",
             rentalDuration: "Durasi Sewa",
             area: "Luas Area (m²)",
             videoUrl: "URL Video",
             transactionType: "Tipe Transaksi",
             availability: "Ketersediaan",
-            ownerName: "Nama Pemilik Komoditas",
+            ownerName: "Nama Pemilik Properti",
             phoneNumber: "Nomor Telepon",
             email: "Email",
         }
@@ -442,8 +442,8 @@ export default function AddCommodityForm() {
     const getFieldPlaceholder = (field: string): string => {
         const placeholders: { [key: string]: string } = {
             title: "Contoh: Sewa Ruko Jl. Stasiun Kota Kediri",
-            type: "Pilih kategori komoditas",
-            address: "Masukkan alamat lengkap komoditas",
+            type: "Pilih kategori properti",
+            address: "Masukkan alamat lengkap properti",
             description: "Jelaskan detail komoditas seperti ukuran, fasilitas, aksesibilitas, kondisi, dll.",
             price: "Masukkan harga dalam Rupiah",
             rentalDuration: "Pilih durasi sewa",
@@ -460,17 +460,17 @@ export default function AddCommodityForm() {
 
     const getFieldDescription = (field: string): string => {
         const descriptions: { [key: string]: string } = {
-            title: "Masukkan judul yang menarik dan deskriptif untuk komoditas Anda.",
-            type: "Pilih kategori yang paling sesuai dengan komoditas Anda.",
-            address: "Berikan alamat fisik atau digital yang jelas untuk komoditas Anda.",
-            description: "Berikan deskripsi yang lengkap dan menarik tentang komoditas Anda.",
+            title: "Masukkan judul yang menarik dan deskriptif untuk properti Anda.",
+            type: "Pilih kategori yang paling sesuai dengan properti Anda.",
+            address: "Berikan alamat fisik atau digital yang jelas untuk properti Anda.",
+            description: "Berikan deskripsi yang lengkap dan menarik tentang properti Anda.",
             price: "Masukkan harga sewa atau persentase bagi hasil sesuai kesepakatan.",
-            rentalDuration: "Pilih durasi sewa yang tersedia untuk komoditas ini.",
-            area: "Masukkan luas area komoditas dalam meter persegi.",
+            rentalDuration: "Pilih durasi sewa yang tersedia untuk properti ini.",
+            area: "Masukkan luas area properti dalam meter persegi.",
             videoUrl: "Masukkan URL video YouTube atau platform serupa jika ada.",
-            transactionType: "Pilih jenis transaksi yang ditawarkan untuk komoditas ini.",
-            availability: "Pilih tanggal ketersediaan komoditas.",
-            ownerName: "Masukkan nama pemilik komoditas atau tim yang mengelola.",
+            transactionType: "Pilih jenis transaksi yang ditawarkan untuk properti ini.",
+            availability: "Pilih tanggal ketersediaan properti.",
+            ownerName: "Masukkan nama pemilik properti atau tim yang mengelola.",
             phoneNumber: "Masukkan nomor telepon yang dapat dihubungi.",
             email: "Masukkan alamat email untuk komunikasi non-telepon.",
         }
@@ -494,8 +494,8 @@ export default function AddCommodityForm() {
 
             <Card className="w-full">
                 <CardHeader>
-                    <CardTitle>Tambah Komoditas Baru</CardTitle>
-                    <CardDescription>Isi formulir di bawah ini untuk menambahkan komoditas baru.</CardDescription>
+                    <CardTitle>Tambah Properti Baru</CardTitle>
+                    <CardDescription>Isi formulir di bawah ini untuk menambahkan properti baru.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>

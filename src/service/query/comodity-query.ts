@@ -5,7 +5,7 @@ import {
     getAllCommodity, getAllCommodityFilter,
     getAllCommodityByOwner, getAllCommodityFilterOwner,
     getCommodityById,
-    storeComodity, updateCommodity
+    storeComodity, updateCommodity, incrementClickPage, incrementClickOrder
 } from "@/service/remote/comodity.remote";
 import toast from "react-hot-toast";
 import {FirebaseError} from "@firebase/util";
@@ -15,7 +15,7 @@ export const useCommodityStore = () => useMutation<string, FirebaseError, { como
     mutationKey: ['commodity', 'store'],
     mutationFn: async ({comodity, files}: { comodity: Commodity, files: File[] }) => storeComodity(comodity, files),
     onSuccess: async () => {
-        toast.success('Berhasil menambah komoditas');
+        toast.success('Berhasil menambah properti');
         window.location.href = `/my-comodity`;
     },
     onError: (error) => {
@@ -38,7 +38,7 @@ export const useUpdateCommodity = () => {
 
             await queryClient.invalidateQueries({queryKey: ['commodities', 'owner']});
 
-            toast.success('Berhasil mengubah komoditas');
+            toast.success('Berhasil mengubah properti');
         },
         onError: (error) => {
             toast.error(error.message);
@@ -93,9 +93,39 @@ export const useDeleteCommodity = () => {
             await deleteCommodity(id);
         },
         onSuccess: () => {
-            toast.success('Berhasil menghapus komoditas');
+            toast.success('Berhasil menghapus properti');
 
             queryClient.invalidateQueries({queryKey: ['commodities', 'owner']});
         },
     });
 };
+
+export const useClickPage = () => {
+    return useMutation<void, FirebaseError, { id: string }>({
+        mutationKey: ['commodity', 'clickPage'],
+        mutationFn: async ({ id }: { id: string }) => {
+            await incrementClickPage(id); // Call the increment function
+        },
+        onSuccess: async () => {
+            // Optionally handle success
+        },
+        onError: (error) => {
+            console.log('Error incrementing click page:', error.message);
+        }
+    })
+}
+
+export const useClickOrder = () => {
+    return useMutation<void, FirebaseError, { id: string }>({
+        mutationKey: ['commodity', 'clickPage'],
+        mutationFn: async ({ id }: { id: string }) => {
+            await incrementClickOrder(id); // Call the increment function
+        },
+        onSuccess: async () => {
+            // Optionally handle success
+        },
+        onError: (error) => {
+            console.log('Error incrementing click page:', error.message);
+        }
+    })
+}

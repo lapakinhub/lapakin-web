@@ -31,4 +31,8 @@ export interface Commodity {
     email?: string;
     lastModified?: Date | FieldValue;
     totalPages?: number
+
+    // New properties
+    clickPage?: number;
+    clickOrder?: number;
 }
