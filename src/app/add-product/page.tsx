@@ -81,7 +81,9 @@ export default function AddCommodityForm() {
             email: auth.currentUser?.email ?? undefined,
             availability: new Date(),
             price: 0,
-            videoUrl: ""
+            videoUrl: "",
+            clickOrder: 0,
+            clickPage: 0,
         }
     })
 
@@ -123,7 +125,6 @@ export default function AddCommodityForm() {
         const comodity: Commodity = {
             ...data
         }
-
         doStoreComodity({comodity, files: imageFiles})
     }
 

@@ -22,5 +22,7 @@ export const propertySchema = z.object({
     images: z.array(z.string()),
     email: z.string({message: "Wajib diisi"}).email('Email tidak valid').optional().or(z.literal('')),
     location: z.string({message: "Wajib diisi"}).min(1, 'Lokasi comodity harus diisi'),
+    clickPage : z.number().optional().or(z.literal(0)),
+    clickOrder: z.number().optional().or(z.literal(0)),
 })
 export type CommodityFormData = z.infer<typeof propertySchema>

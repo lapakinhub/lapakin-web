@@ -21,6 +21,8 @@ const auth = getAuth(firebaseApp)
 
 export const storeComodity = async (propertyData: Commodity, files: File[]) => {
     const images: string[] = [];
+
+    console.log(propertyData)
     for (const file of files) {
         const url = await uploadFile({file, folder: 'images'});
         images.push(url);
@@ -194,7 +196,6 @@ export const getCommodityById = async (commodityId: string): Promise<Commodity> 
 
     const data = docSnap.data() as Commodity;
 
-    console.log(data.availability)
 
     if (data.availability && (data.availability as any).toDate) {
         data.availability = (data.availability as any).toDate()
