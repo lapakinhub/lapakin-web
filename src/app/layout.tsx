@@ -4,6 +4,7 @@ import {ReactQueryClientProvider} from "@/components/provider/ReactQueryProvider
 import React from "react";
 import {Toaster} from 'react-hot-toast';
 import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
+import { Analytics } from "@vercel/analytics/react"
 
 import localFont from 'next/font/local'
 import Footer from "@/components/atoms/Footer";
@@ -35,6 +36,7 @@ export default function RootLayout({children}: Readonly<{
             <body
                 className={`${airBncFont.className} antialiased p-4`}
             >
+            <Analytics/>
             <div className={'flex flex-col items-start mx-auto w-full min-h-screen h-full'}>
                 {children}
             </div>
