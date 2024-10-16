@@ -22,7 +22,6 @@ const auth = getAuth(firebaseApp)
 export const storeComodity = async (propertyData: Commodity, files: File[]) => {
     const images: string[] = [];
 
-    console.log(propertyData)
     for (const file of files) {
         const url = await uploadFile({file, folder: 'images'});
         images.push(url);

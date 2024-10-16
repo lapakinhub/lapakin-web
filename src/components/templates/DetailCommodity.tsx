@@ -13,12 +13,15 @@ import LoaderOverlay from "@/components/molecules/LoadingOverlay"
 import {FaWhatsapp} from "react-icons/fa"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {incrementClickOrder} from "@/service/remote/comodity.remote";
+import {useGetAuthUser} from "@/service/query/auth.query";
+import toast from "react-hot-toast";
 
 export default function DetailCommodity() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const commodityId = searchParams.get('id') as string
 
+    const {data: authUser, isLoading: loadUser} = useGetAuthUser()
     const {data: komoditas, isLoading} = useGetCommodity(commodityId)
 
     if (isLoading) {
@@ -35,12 +38,16 @@ export default function DetailCommodity() {
     }
 
     const handleChatSekarang = async () => {
-        await incrementClickOrder(komoditas.id as string);
-        const formattedPhone = komoditas.phoneNumber.startsWith('0')
-            ? '62' + komoditas.phoneNumber.slice(1)
-            : komoditas.phoneNumber
-        const whatsappUrl = `https://wa.me/${formattedPhone}`
-        window.open(whatsappUrl, '_blank')
+        if (!authUser) {
+            toast.error("Anda harus login terlebih dahulu");
+        } else{
+            await incrementClickOrder(komoditas.id as string);
+            const formattedPhone = komoditas.phoneNumber.startsWith('0')
+              ? '62' + komoditas.phoneNumber.slice(1)
+              : komoditas.phoneNumber
+            const whatsappUrl = `https://wa.me/${formattedPhone}`
+            window.open(whatsappUrl, '_blank')
+        }
     }
 
     return (
@@ -205,14 +212,22 @@ export default function DetailCommodity() {
             </Card>
 
             {/* Fixed bottom bar for mobile */}
-            <div className="fixed bottom-0 flex justify-center left-0 right-0 bg-background border-t p-4">
-                <Button
-                    className="w-full max-w-5xl mx-auto bg-green-600 hover:bg-green-700 text-white"
-                    size="lg"
-                    onClick={handleChatSekarang}
-                >
-                    <FaWhatsapp className="mr-2 h-5 w-5"/> Chat Sekarang
-                </Button>
+            <div className="fixed bottom-0 flex-col justify-center left-0 right-0 bg-background border-t p-4">
+                {!authUser && (
+                  <div className="flex  justify-center p-1">
+                      <span className="text-red-700">Silahkan Login Untuk Melakukan Pemesanan</span>
+                  </div>
+                )}
+                <div className="flex">
+                    <Button
+                      disabled={!authUser}
+                      className="w-full max-w-5xl mx-auto bg-green-600 hover:bg-green-700 text-white"
+                      size="lg"
+                      onClick={handleChatSekarang}
+                    >
+                        <FaWhatsapp className="mr-2 h-5 w-5"/> Chat Sekarang
+                    </Button>
+                </div>
             </div>
         </div>
     )

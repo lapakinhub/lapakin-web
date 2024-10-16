@@ -7,7 +7,7 @@ import {FaHome, FaSearch, FaBell, FaUser} from 'react-icons/fa'
 import {Button} from "@/components/ui/button"
 import {AppLogoWBg} from "@/components/atoms/AppLogoWBg";
 import { AiFillProduct } from "react-icons/ai";
-
+import {useGetAuthUser} from "@/service/query/auth.query";
 interface NavItem {
     name: string;
     href: string;
@@ -54,12 +54,12 @@ const Navbar: React.FC = () => {
         }
     }, [])
 
+  const {data: authUser, isLoading: loadUser} = useGetAuthUser()
     const navItems: NavItem[] = [
         {name: 'Beranda', href: '/', icon: FaHome},
         {name: 'Properti Saya', href: '/my-comodity', icon: AiFillProduct},
-        {name: 'Profil', href: '/profile', icon: FaUser},
+        {name: authUser?.fullName || 'Profil', href: '/profile', icon: FaUser},
     ]
-
     return (
         <nav className={`
       ${isMobile
